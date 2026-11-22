@@ -1,0 +1,2425 @@
+{
+  "schema": 1,
+  "name": "main",
+  "generated": "2026-11-22T08:29:15Z",
+  "services": [
+    {
+      "schema": 1,
+      "id": "american-truck-simulator",
+      "name": "American Truck Simulator",
+      "description": "SCS Software's American Truck Simulator convoy dedicated server, installed through SteamCMD.",
+      "homepage": "https://americantrucksimulator.com",
+      "version": "1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 2239530
+        },
+        "downloads": [
+          {
+            "url": "https://raw.githubusercontent.com/pelican-eggs/games-steamcmd/main/truck-simulator/server_config.sii",
+            "sha256": "514ab434c818e666a71cec854ee17fe029ac4011ceaf927a000dac03f4c8e93d",
+            "to": ".local/share/American Truck Simulator/server_config.sii"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/pelican-eggs/games-steamcmd/main/truck-simulator/american-truck-simulator/ats-files/server_packages.sii",
+            "sha256": "a4f6d740629ac196c57f1037e6f8d06d21e7a3abe7a2b0b9b5c0613756a61b50",
+            "to": ".local/share/American Truck Simulator/server_packages.sii"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/pelican-eggs/games-steamcmd/main/truck-simulator/american-truck-simulator/ats-files/server_packages.dat",
+            "sha256": "08ce75d97d33e23f30f5286fba094392a59fcce28e5e752d0eb46a32e2683931",
+            "to": ".local/share/American Truck Simulator/server_packages.dat"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "type": "steam_sdk"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "bin/linux_x64/amtrucks_server"
+        }
+      ],
+      "settings": [
+        {
+          "key": "lobby_name",
+          "prompt": "Lobby name",
+          "type": "string",
+          "default": "Anyserve convoy"
+        },
+        {
+          "key": "description",
+          "prompt": "Description",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 8,
+          "min": 1,
+          "max": 8
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "logon_token",
+          "prompt": "Steam Game Server Login Token (empty for a temporary server ID)",
+          "description": "Create one at steamcommunity.com/dev/managegameservers with app ID 270880, so the server keeps the same ID across restarts.",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 27015,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 27016,
+          "protocol": "udp",
+          "description": "Steam query.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": ".local/share/American Truck Simulator/server_config.sii",
+          "format": "lines",
+          "set": {
+            " connection_dedicated_port:": " connection_dedicated_port: {{.Ports.game}}",
+            " description:": " description: \"{{.Settings.description}}\"",
+            " lobby_name:": " lobby_name: \"{{.Settings.lobby_name}}\"",
+            " max_players:": " max_players: {{.Settings.max_players}}",
+            " password:": " password: \"{{.Settings.password}}\"",
+            " query_dedicated_port:": " query_dedicated_port: {{.Ports.query}}",
+            " server_logon_token:": " server_logon_token: \"{{.Settings.logon_token}}\""
+          }
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "bin/linux_x64/amtrucks_server",
+          "args": [
+            "-nosingle"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/linux64:{{.Dir}}/bin/linux_x64"
+          }
+        }
+      },
+      "stop": {
+        "timeout_seconds": 30
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          ".local/share/American Truck Simulator"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "atsserver"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "core-keeper",
+      "name": "Core Keeper",
+      "description": "Pugstorm's Core Keeper dedicated server, installed through SteamCMD and run on a virtual display.",
+      "homepage": "https://store.steampowered.com/app/1621690/Core_Keeper/",
+      "version": "1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 1963720
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "CoreKeeperServer"
+        },
+        {
+          "type": "mkdir",
+          "path": "save"
+        }
+      ],
+      "settings": [
+        {
+          "key": "world_name",
+          "prompt": "World name",
+          "type": "string",
+          "default": "Anyserve"
+        },
+        {
+          "key": "world_seed",
+          "prompt": "World seed (0 for random)",
+          "type": "int",
+          "default": 0,
+          "min": 0
+        },
+        {
+          "key": "world_mode",
+          "prompt": "World mode",
+          "type": "choice",
+          "default": "0",
+          "choices": [
+            {
+              "value": "0",
+              "label": "Normal"
+            },
+            {
+              "value": "1",
+              "label": "Hard"
+            },
+            {
+              "value": "2",
+              "label": "Creative"
+            },
+            {
+              "value": "4",
+              "label": "Casual"
+            }
+          ]
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 8,
+          "min": 1,
+          "max": 100
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 27015,
+          "protocol": "udp",
+          "description": "Direct connections. Players normally join with the Game ID through Steam's relay, so forwarding is optional.",
+          "public": false
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "CoreKeeperServer",
+          "via": [
+            "xvfb"
+          ],
+          "args": [
+            "-batchmode",
+            "-logfile",
+            "-",
+            "-datapath",
+            "{{.Dir}}/save",
+            "-world",
+            "0",
+            "-worldname",
+            "{{.Settings.world_name}}",
+            "-worldseed",
+            "{{.Settings.world_seed}}",
+            "-worldmode",
+            "{{.Settings.world_mode}}",
+            "-maxplayers",
+            "{{.Settings.max_players}}",
+            "-port",
+            "{{.Ports.game}}"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/linux64:{{.Dir}}"
+          }
+        }
+      },
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "save"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "xvfb",
+          "libxi6",
+          "libxcursor1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "ckserver"
+      },
+      "notes": [
+        "Needs xvfb-run on the host, because the server won't start without a display.",
+        "Players join with the Game ID the server writes to GameID.txt in the server folder."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "counter-strike-2",
+      "name": "Counter-Strike 2",
+      "description": "Valve's Counter-Strike 2 dedicated server, installed through SteamCMD (about 35 GB).",
+      "homepage": "https://www.counter-strike.net",
+      "version": "2",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 730
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "An Anyserve CS2 server"
+        },
+        {
+          "key": "game",
+          "prompt": "Game mode",
+          "type": "choice",
+          "default": "competitive",
+          "choices": [
+            {
+              "value": "casual",
+              "label": "Casual"
+            },
+            {
+              "value": "competitive",
+              "label": "Competitive"
+            },
+            {
+              "value": "wingman",
+              "label": "Wingman"
+            },
+            {
+              "value": "deathmatch",
+              "label": "Deathmatch"
+            },
+            {
+              "value": "armsrace",
+              "label": "Arms Race"
+            }
+          ]
+        },
+        {
+          "key": "map",
+          "prompt": "Starting map",
+          "type": "string",
+          "default": "de_dust2"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 12,
+          "min": 1,
+          "max": 64
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "gslt",
+          "prompt": "Game Server Login Token (empty for a LAN-only server)",
+          "description": "Create one at steamcommunity.com/dev/managegameservers with app ID 730.",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 27015,
+          "protocol": "both",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "tv",
+          "port": 27020,
+          "protocol": "udp",
+          "description": "CSTV spectators.",
+          "public": false
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "game/bin/linuxsteamrt64/cs2",
+          "args": [
+            "-dedicated",
+            "-ip",
+            "0.0.0.0",
+            "-port",
+            "{{.Ports.game}}",
+            "-tv_port",
+            "{{.Ports.tv}}",
+            "-maxplayers",
+            "{{.Settings.max_players}}",
+            "-usercon",
+            "+game_type",
+            "{{if eq .Settings.game \"deathmatch\" \"armsrace\"}}1{{else}}0{{end}}",
+            "+game_mode",
+            "{{if eq .Settings.game \"competitive\" \"deathmatch\"}}1{{else if eq .Settings.game \"wingman\"}}2{{else}}0{{end}}",
+            "+map",
+            "{{.Settings.map}}",
+            "+hostname",
+            "{{.Settings.server_name}}",
+            "{{if .Settings.password}}+sv_password{{end}}",
+            "{{.Settings.password}}",
+            "+rcon_password",
+            "{{.Settings.rcon_password}}",
+            "{{if .Settings.gslt}}+sv_setsteamaccount{{end}}",
+            "{{.Settings.gslt}}"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/game/bin/linuxsteamrt64"
+          }
+        },
+        "windows": {
+          "command": "game/bin/win64/cs2.exe",
+          "args": [
+            "-dedicated",
+            "-ip",
+            "0.0.0.0",
+            "-port",
+            "{{.Ports.game}}",
+            "-tv_port",
+            "{{.Ports.tv}}",
+            "-maxplayers",
+            "{{.Settings.max_players}}",
+            "-usercon",
+            "+game_type",
+            "{{if eq .Settings.game \"deathmatch\" \"armsrace\"}}1{{else}}0{{end}}",
+            "+game_mode",
+            "{{if eq .Settings.game \"competitive\" \"deathmatch\"}}1{{else if eq .Settings.game \"wingman\"}}2{{else}}0{{end}}",
+            "+map",
+            "{{.Settings.map}}",
+            "+hostname",
+            "{{.Settings.server_name}}",
+            "{{if .Settings.password}}+sv_password{{end}}",
+            "{{.Settings.password}}",
+            "+rcon_password",
+            "{{.Settings.rcon_password}}",
+            "{{if .Settings.gslt}}+sv_setsteamaccount{{end}}",
+            "{{.Settings.gslt}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "quit",
+        "timeout_seconds": 30
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "rcon": {
+          "protocol": "source",
+          "port": "game",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "game/csgo/cfg"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "cs2server"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "cryofall",
+      "name": "CryoFall",
+      "description": "AtomicTorch's CryoFall dedicated server, a .NET server installed through SteamCMD.",
+      "homepage": "https://cryofall.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 1061710
+        }
+      },
+      "ports": [
+        {
+          "name": "game",
+          "port": 6000,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "Binaries/Server/CryoFall_Server.dll",
+          "via": [
+            "dotnet"
+          ],
+          "args": [
+            "loadOrNew"
+          ]
+        },
+        "windows": {
+          "command": "Binaries/Server/CryoFall_Server.dll",
+          "via": [
+            "dotnet"
+          ],
+          "args": [
+            "loadOrNew"
+          ]
+        }
+      },
+      "stop": {
+        "command": "stop 10 Server is shutting down",
+        "timeout_seconds": 60
+      },
+      "console": {
+        "save": "save"
+      },
+      "backup": {
+        "paths": [
+          "Data"
+        ]
+      },
+      "container": {
+        "image": "mcr.microsoft.com/dotnet/runtime:6.0",
+        "packages": [
+          "ca-certificates"
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not in LinuxGSM. Sourced from the Pelican/Pterodactyl egg."
+      },
+      "notes": [
+        "Needs the .NET 6 runtime on the host.",
+        "Server name, password and port live in Data/SettingsServer.xml, which the server creates on first start. Anyserve can't edit XML yet, so change them there; the game port setting above must match it."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "dont-starve-together",
+      "name": "Don't Starve Together",
+      "description": "Klei's Don't Starve Together dedicated server (surface shard only), installed through SteamCMD.",
+      "homepage": "https://www.klei.com/games/dont-starve-together",
+      "version": "1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 343050
+        }
+      },
+      "settings": [
+        {
+          "key": "cluster_token",
+          "prompt": "Klei cluster token (from accounts.klei.com, Games, Game Servers)",
+          "description": "Every DST server needs a token tied to your Klei account.",
+          "type": "string",
+          "secret": true
+        },
+        {
+          "key": "cluster_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "An Anyserve DST server"
+        },
+        {
+          "key": "cluster_description",
+          "prompt": "Server description",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "game_mode",
+          "prompt": "Game mode",
+          "type": "choice",
+          "default": "survival",
+          "choices": [
+            {
+              "value": "survival",
+              "label": "Survival"
+            },
+            {
+              "value": "endless",
+              "label": "Endless"
+            },
+            {
+              "value": "wilderness",
+              "label": "Wilderness"
+            }
+          ]
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 6,
+          "min": 1,
+          "max": 64
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "pvp",
+          "prompt": "Allow PvP?",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 10999,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "DoNotStarveTogether/config/server/cluster_token.txt",
+          "template": "{{.Settings.cluster_token}}",
+          "overwrite": true
+        },
+        {
+          "path": "DoNotStarveTogether/config/server/cluster.ini",
+          "template": "[GAMEPLAY]\ngame_mode = survival\n\n[NETWORK]\ncluster_name = Anyserve\n\n[MISC]\nconsole_enabled = true\n\n[SHARD]\nshard_enabled = false\n",
+          "format": "ini",
+          "set": {
+            "GAMEPLAY.game_mode": "{{.Settings.game_mode}}",
+            "GAMEPLAY.max_players": "{{.Settings.max_players}}",
+            "GAMEPLAY.pvp": "{{truefalse .Settings.pvp}}",
+            "NETWORK.cluster_description": "{{.Settings.cluster_description}}",
+            "NETWORK.cluster_name": "{{.Settings.cluster_name}}",
+            "NETWORK.cluster_password": "{{.Settings.password}}",
+            "SHARD.shard_enabled": "false"
+          }
+        },
+        {
+          "path": "DoNotStarveTogether/config/server/Master/server.ini",
+          "template": "[SHARD]\nis_master = true\n",
+          "format": "ini",
+          "set": {
+            "NETWORK.server_port": "{{.Ports.game}}",
+            "SHARD.is_master": "true"
+          }
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "bin64/dontstarve_dedicated_server_nullrenderer_x64",
+          "args": [
+            "-bind_ip",
+            "0.0.0.0",
+            "-port",
+            "{{.Ports.game}}",
+            "-persistent_storage_root",
+            "{{.Dir}}/DoNotStarveTogether",
+            "-conf_dir",
+            "config",
+            "-cluster",
+            "server",
+            "-players",
+            "{{.Settings.max_players}}",
+            "-shard",
+            "Master"
+          ],
+          "workdir": "bin64"
+        }
+      },
+      "stop": {
+        "command": "c_shutdown()",
+        "timeout_seconds": 60
+      },
+      "console": {
+        "say": "c_announce(\"{{.Message}}\")",
+        "save": "c_save()"
+      },
+      "backup": {
+        "paths": [
+          "DoNotStarveTogether/config/server"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1",
+          "libcurl3-gnutls"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "dstserver"
+      },
+      "notes": [
+        "Surface world only. The Caves shard is a second server process, which Anyserve can't run as part of one service yet."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "killing-floor",
+      "name": "Killing Floor",
+      "description": "Tripwire's original Killing Floor dedicated server, installed through SteamCMD with a Steam account.",
+      "homepage": "https://store.steampowered.com/app/1250/Killing_Floor/",
+      "version": "1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 215360,
+          "login": "required"
+        }
+      },
+      "steps": [
+        {
+          "type": "steamcmd_file",
+          "from": "linux32/steamclient.so",
+          "to": "System/steamclient.so"
+        },
+        {
+          "type": "steamcmd_file",
+          "from": "linux32/libtier0_s.so",
+          "to": "System/libtier0_s.so"
+        },
+        {
+          "type": "steamcmd_file",
+          "from": "linux32/libvstdlib_s.so",
+          "to": "System/libvstdlib_s.so"
+        },
+        {
+          "type": "copy_file_if_missing",
+          "from": "System/Default.ini",
+          "to": "System/KFServer.ini"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "System/ucc-bin"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "An Anyserve Killing Floor server"
+        },
+        {
+          "key": "map",
+          "prompt": "Starting map",
+          "type": "string",
+          "default": "KF-BioticsLab"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 6,
+          "min": 1,
+          "max": 32
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password for web admin (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 7707,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 7708,
+          "protocol": "udp",
+          "description": "Server browser query (game port + 1).",
+          "public": true
+        },
+        {
+          "name": "master",
+          "port": 28852,
+          "protocol": "both",
+          "description": "Master server listing.",
+          "public": true
+        },
+        {
+          "name": "steam",
+          "port": 20560,
+          "protocol": "udp",
+          "description": "Steam.",
+          "public": true
+        },
+        {
+          "name": "webadmin",
+          "port": 8075,
+          "protocol": "tcp",
+          "description": "Web admin.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "System/KFServer.ini",
+          "format": "ini",
+          "set": {
+            "Engine.AccessControl.AdminPassword": "{{.Settings.admin_password}}",
+            "Engine.AccessControl.GamePassword": "{{.Settings.password}}",
+            "Engine.GameInfo.MaxPlayers": "{{.Settings.max_players}}",
+            "Engine.GameReplicationInfo.ServerName": "{{.Settings.server_name}}",
+            "IpDrv.MasterServerUplink.ServerBehindNAT": "True",
+            "URL.Port": "{{.Ports.game}}",
+            "UWeb.WebServer.ListenPort": "{{.Ports.webadmin}}",
+            "UWeb.WebServer.bEnabled": "True"
+          }
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "System/ucc-bin",
+          "args": [
+            "server",
+            "{{.Settings.map}}.rom?game=KFmod.KFGameType?VACSecured=true?MaxPlayers={{.Settings.max_players}}",
+            "-nohomedir",
+            "ini=KFServer.ini",
+            "log=KFServer.log"
+          ],
+          "workdir": "System"
+        }
+      },
+      "stop": {
+        "timeout_seconds": 30
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "System/KFServer.ini"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1",
+          "lib32stdc++6"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "kfserver"
+      },
+      "notes": [
+        "Needs a Steam account that owns Killing Floor. Sign in once with `anyserve steam login \u003cuser\u003e`; SteamCMD keeps the session and Anyserve never sees the password."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "lemmy",
+      "name": "Lemmy",
+      "description": "A federated link aggregator and forum (like Reddit, on the fediverse), as a stack of containers.",
+      "homepage": "https://join-lemmy.org",
+      "version": "0.19.21-3",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "hostname",
+          "prompt": "Domain name people will use (e.g. lemmy.example.com)",
+          "description": "Federation uses this name, and it can't be changed after the first start.",
+          "type": "string",
+          "default": "localhost"
+        },
+        {
+          "key": "https",
+          "prompt": "Will it be served over HTTPS by a proxy in front of it?",
+          "description": "Say no only for testing on this machine. Federation needs HTTPS.",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "site_name",
+          "prompt": "Site name",
+          "type": "string",
+          "default": "Anyserve Lemmy"
+        },
+        {
+          "key": "admin_username",
+          "prompt": "Admin user name (created on first start)",
+          "type": "string",
+          "default": "admin"
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password, 10 to 60 characters (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "admin_email",
+          "prompt": "Admin email (optional)",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "postgres_password",
+          "prompt": "Database password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "pictrs_api_key",
+          "prompt": "Image server API key (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 10633,
+          "protocol": "tcp",
+          "description": "The whole site (UI, API, images, federation). Put an HTTPS proxy in front of it.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "config/lemmy.hjson",
+          "template": "# Written by Anyserve. Changes here are replaced on reconfigure.\n{\n  hostname: {{json .Settings.hostname}}\n  bind: \"0.0.0.0\"\n  port: 8536\n  tls_enabled: {{truefalse .Settings.https}}\n  database: {\n    host: \"postgres\"\n    port: 5432\n    user: \"lemmy\"\n    password: {{json .Settings.postgres_password}}\n    database: \"lemmy\"\n  }\n  pictrs: {\n    url: \"http://pictrs:8080/\"\n    api_key: {{json .Settings.pictrs_api_key}}\n  }\n  # Used only on the first start, to create the admin and the site.\n  setup: {\n    admin_username: {{json .Settings.admin_username}}\n    admin_password: {{json .Settings.admin_password}}\n    site_name: {{json .Settings.site_name}}\n    {{if .Settings.admin_email}}admin_email: {{json .Settings.admin_email}}{{end}}\n  }\n}\n",
+          "overwrite": true
+        },
+        {
+          "path": "config/nginx.conf",
+          "template": "# Written by Anyserve. Changes here are replaced on reconfigure.\npid /tmp/nginx.pid;\nworker_processes auto;\nevents {}\n\nhttp {\n  # The unprivileged image can only write under /tmp.\n  client_body_temp_path /tmp/client_temp;\n  proxy_temp_path /tmp/proxy_temp;\n  fastcgi_temp_path /tmp/fastcgi_temp;\n  uwsgi_temp_path /tmp/uwsgi_temp;\n  scgi_temp_path /tmp/scgi_temp;\n\n  # Look containers up through Docker's DNS on every request, so a\n  # restarted container is found again without restarting nginx.\n  resolver 127.0.0.11 valid=10s ipv6=off;\n\n  # Lemmy's backend answers writes and ActivityPub lookups from other\n  # servers; the web UI answers people's browsers.\n  map $request_method $anyserve_write {\n    GET 0;\n    HEAD 0;\n    default 1;\n  }\n  map $http_accept $anyserve_activitypub {\n    default 0;\n    \"~application/(activity|ld)\\+json\" 1;\n  }\n  map \"$anyserve_write$anyserve_activitypub\" $anyserve_upstream {\n    \"00\" \"http://lemmy-ui:1234\";\n    default \"http://lemmy:8536\";\n  }\n\n  server {\n    listen 8080;\n    server_tokens off;\n    client_max_body_size 20M;\n\n    proxy_set_header Host $host;\n    proxy_set_header X-Real-IP $remote_addr;\n    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    proxy_set_header X-Forwarded-Proto $scheme;\n\n    set $anyserve_backend \"http://lemmy:8536\";\n    set $anyserve_ui \"http://lemmy-ui:1234\";\n\n    location / {\n      proxy_pass $anyserve_upstream;\n    }\n    # The API, images, feeds and discovery files always come from the\n    # backend, except security.txt, which the UI serves.\n    location ~ ^/(api|pictrs|feeds|nodeinfo|\\.well-known|version|sitemap\\.xml)(/|$) {\n      proxy_pass $anyserve_backend;\n    }\n    location = /.well-known/security.txt {\n      proxy_pass $anyserve_ui;\n    }\n  }\n}\n",
+          "overwrite": true
+        }
+      ],
+      "run": null,
+      "stop": {
+        "timeout_seconds": 30
+      },
+      "console": {
+        "exec": {
+          "service": "postgres",
+          "command": [
+            "psql",
+            "-U",
+            "lemmy",
+            "-d",
+            "lemmy"
+          ],
+          "description": "the PostgreSQL shell for Lemmy's database"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data/postgres",
+          "data/pictrs",
+          "config"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "postgres",
+            "image": "postgres:16.16-alpine@sha256:f2f98726820d0342055351c6e9d36e705f5bfffb3dd53ff556325114b08afb6d",
+            "env": {
+              "POSTGRES_DB": "lemmy",
+              "POSTGRES_PASSWORD": "{{.Settings.postgres_password}}",
+              "POSTGRES_USER": "lemmy"
+            },
+            "volumes": [
+              {
+                "path": "data/postgres",
+                "target": "/var/lib/postgresql/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "pg_isready",
+                "-U",
+                "lemmy",
+                "-d",
+                "lemmy"
+              ],
+              "interval_seconds": 5,
+              "retries": 20
+            },
+            "shm_mb": 256
+          },
+          {
+            "name": "pictrs",
+            "image": "asonix/pictrs:0.5.25@sha256:6c64d7d282b67931716861b92bce48392791b57b571f5b7bbe132a10b4f0c39e",
+            "env": {
+              "PICTRS__SERVER__API_KEY": "{{.Settings.pictrs_api_key}}",
+              "RUST_LOG": "warn"
+            },
+            "volumes": [
+              {
+                "path": "data/pictrs",
+                "target": "/mnt"
+              }
+            ]
+          },
+          {
+            "name": "lemmy",
+            "image": "dessalines/lemmy:0.19.21@sha256:839d72704b10d574a21dacab046d9369e241366e4092b950d801e821f779de29",
+            "env": {
+              "RUST_LOG": "warn"
+            },
+            "volumes": [
+              {
+                "path": "config/lemmy.hjson",
+                "target": "/config/config.hjson",
+                "read_only": true
+              }
+            ],
+            "depends_on": [
+              "postgres",
+              "pictrs"
+            ]
+          },
+          {
+            "name": "lemmy-ui",
+            "image": "dessalines/lemmy-ui:0.19.21@sha256:d78d073a888c780f83e10850867841eca03261c8c459b65465fa337b4071768d",
+            "env": {
+              "LEMMY_UI_HTTPS": "{{truefalse .Settings.https}}",
+              "LEMMY_UI_LEMMY_EXTERNAL_HOST": "{{.Settings.hostname}}",
+              "LEMMY_UI_LEMMY_INTERNAL_HOST": "lemmy:8536"
+            },
+            "depends_on": [
+              "lemmy"
+            ]
+          },
+          {
+            "name": "proxy",
+            "image": "nginxinc/nginx-unprivileged:1.31.7-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e",
+            "volumes": [
+              {
+                "path": "config/nginx.conf",
+                "target": "/etc/nginx/nginx.conf",
+                "read_only": true
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              }
+            ],
+            "depends_on": [
+              "lemmy",
+              "lemmy-ui"
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Needs Docker with the Compose plugin.",
+        "The site listens on 127.0.0.1 only. Put an HTTPS reverse proxy (Caddy, nginx, a tunnel) in front of it for your domain.",
+        "The admin account is created on the first start; `anyserve info` doesn't show generated passwords, but they're in the instance's instance.json."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "no-one-survived",
+      "name": "No One Survived",
+      "description": "No One Survived zombie survival dedicated server (Windows build), installed through SteamCMD.",
+      "homepage": "https://store.steampowered.com/app/1963370/No_One_Survived/",
+      "version": "1",
+      "platforms": [
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 2329680
+        }
+      },
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name (up to 32 characters)",
+          "type": "string",
+          "default": "Anyserve NOS"
+        },
+        {
+          "key": "save_name",
+          "prompt": "Save name",
+          "type": "string",
+          "default": "MySave"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "zombies",
+          "prompt": "Number of zombies",
+          "type": "int",
+          "default": 50,
+          "min": 25,
+          "max": 100
+        },
+        {
+          "key": "region",
+          "prompt": "Region",
+          "type": "choice",
+          "default": "All",
+          "choices": [
+            {
+              "value": "All",
+              "label": "All"
+            },
+            {
+              "value": "NA",
+              "label": "North America"
+            },
+            {
+              "value": "SA",
+              "label": "South America"
+            },
+            {
+              "value": "EU",
+              "label": "Europe"
+            },
+            {
+              "value": "AS",
+              "label": "Asia"
+            },
+            {
+              "value": "AF",
+              "label": "Africa"
+            },
+            {
+              "value": "OC",
+              "label": "Oceania"
+            }
+          ]
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 7777,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 27015,
+          "protocol": "udp",
+          "description": "Steam server browser.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "WRSH/Saved/Config/WindowsServer/Engine.ini",
+          "format": "ini",
+          "set": {
+            "OnlineSubsystemSteam.GameServerQueryPort": "{{.Ports.query}}",
+            "OnlineSubsystemSteam.bUseSteamNetworking": "False",
+            "URL.Port": "{{.Ports.game}}"
+          }
+        },
+        {
+          "path": "WRSH/Saved/Config/WindowsServer/Game.ini",
+          "format": "ini",
+          "set": {
+            "ServerSetting.AdminPassword": "{{.Settings.admin_password}}",
+            "ServerSetting.MaxPlayers": "{{.Settings.max_players}}",
+            "ServerSetting.NeedPassword": "{{if .Settings.password}}True{{else}}False{{end}}",
+            "ServerSetting.NumOfZombieSpawn": "{{.Settings.zombies}}",
+            "ServerSetting.Password": "{{.Settings.password}}",
+            "ServerSetting.Region": "{{.Settings.region}}",
+            "ServerSetting.SaveName": "{{.Settings.save_name}}",
+            "ServerSetting.ServerName": "{{.Settings.server_name}}"
+          }
+        }
+      ],
+      "run": {
+        "windows": {
+          "command": "WRSHServer.exe",
+          "args": [
+            "-server",
+            "-log",
+            "-Port={{.Ports.game}}",
+            "-QueryPort={{.Ports.query}}"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "WRSH/Saved"
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Windows-only server, so it can't go into LinuxGSM without Wine. Sourced from the Pelican/Pterodactyl egg, which runs it under Wine."
+      },
+      "notes": [
+        "Windows only; Anyserve doesn't run Windows servers under Wine.",
+        "The server writes Engine.ini and Game.ini on first start; Anyserve applies your settings from the second start on."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "plains-of-pain",
+      "name": "Plains of Pain",
+      "description": "Plains of Pain survival dedicated server, installed through SteamCMD.",
+      "homepage": "https://store.steampowered.com/app/1706670/Plains_of_Pain/",
+      "version": "1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 2227360
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "PlainsOfPain.x86_64"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "An Anyserve Plains of Pain server"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 200
+        },
+        {
+          "key": "difficulty",
+          "prompt": "Difficulty",
+          "type": "choice",
+          "default": "1",
+          "choices": [
+            {
+              "value": "0",
+              "label": "Very easy"
+            },
+            {
+              "value": "1",
+              "label": "Easy"
+            },
+            {
+              "value": "2",
+              "label": "Normal"
+            },
+            {
+              "value": "3",
+              "label": "Hard"
+            },
+            {
+              "value": "4",
+              "label": "Very hard"
+            }
+          ]
+        },
+        {
+          "key": "world_size",
+          "prompt": "World size (used only when the world is first created)",
+          "type": "choice",
+          "default": "21",
+          "choices": [
+            {
+              "value": "11",
+              "label": "Tiny (11)"
+            },
+            {
+              "value": "21",
+              "label": "Small (21)"
+            },
+            {
+              "value": "31",
+              "label": "Medium (31)"
+            },
+            {
+              "value": "41",
+              "label": "Large (41)"
+            },
+            {
+              "value": "51",
+              "label": "Huge (51)"
+            }
+          ]
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (letters, digits, - and _; empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 7777,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 27016,
+          "protocol": "udp",
+          "description": "Steam server browser.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "PlainsOfPain.x86_64",
+          "args": [
+            "-nographics",
+            "-batchmode",
+            "-ignorecompilererror",
+            "-servername",
+            "{{.Settings.server_name}}",
+            "-maxPlayers",
+            "{{.Settings.max_players}}",
+            "-port",
+            "{{.Ports.game}}",
+            "-queryPort",
+            "{{.Ports.query}}",
+            "-difficulty",
+            "{{.Settings.difficulty}}",
+            "-worldSize",
+            "{{.Settings.world_size}}",
+            "-cc",
+            "{{if .Settings.password}}-password{{end}}",
+            "{{.Settings.password}}"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/linux64:{{.Dir}}"
+          }
+        }
+      },
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          ".config/unity3d"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not in LinuxGSM. Sourced from the Pelican/Pterodactyl egg."
+      },
+      "notes": [
+        "Saves live under .config/unity3d in the server folder, because Anyserve gives each server its own home."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "quake-4",
+      "name": "Quake 4",
+      "description": "id Software's Quake 4 dedicated server (1.4.2), from LinuxGSM's archive of the official Linux build.",
+      "homepage": "https://store.steampowered.com/app/2210/Quake_4/",
+      "version": "1.4.2-1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "archive": {
+          "url": "https://linuxgsm.download/Quake4/q4-1.4.2-linux-i386-linuxgsm-20261101.tar.xz",
+          "sha256": "f24a0147cceb98fa78c3041c613f460488d9e6e2a2165de56547d33efefa20fa"
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "q4ded.x86"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "An Anyserve Quake 4 server"
+        },
+        {
+          "key": "game_type",
+          "prompt": "Game type",
+          "type": "choice",
+          "default": "DM",
+          "choices": [
+            {
+              "value": "DM",
+              "label": "Deathmatch"
+            },
+            {
+              "value": "Team DM",
+              "label": "Team deathmatch"
+            },
+            {
+              "value": "Tourney",
+              "label": "Tourney"
+            },
+            {
+              "value": "CTF",
+              "label": "Capture the flag"
+            },
+            {
+              "value": "Arena CTF",
+              "label": "Arena CTF"
+            }
+          ]
+        },
+        {
+          "key": "map",
+          "prompt": "Starting map",
+          "type": "string",
+          "default": "mp/q4dm1"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 16,
+          "min": 2,
+          "max": 16
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "Remote console password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 28004,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "q4base/anyserve.cfg",
+          "template": "// Written by Anyserve. Changes here are replaced on reconfigure;\n// put your own settings in q4base/server.cfg instead.\nset si_name \"{{.Settings.server_name}}\"\nset si_gameType \"{{.Settings.game_type}}\"\nset si_maxPlayers {{.Settings.max_players}}\nset si_map \"{{.Settings.map}}\"\nset net_serverDedicated 1\nset si_usePass {{if .Settings.password}}1{{else}}0{{end}}\nset g_password \"{{.Settings.password}}\"\nset net_serverRemoteConsolePassword \"{{.Settings.rcon_password}}\"\nexec server.cfg\n",
+          "overwrite": true
+        },
+        {
+          "path": "q4base/server.cfg",
+          "template": "// Your own Quake 4 server settings. Anyserve never changes this file.\nset si_warmup 1\nset si_fragLimit 25\nset si_timeLimit 15\n"
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "q4ded.x86",
+          "args": [
+            "+set",
+            "sv_punkbuster",
+            "0",
+            "+set",
+            "fs_basepath",
+            "{{.Dir}}",
+            "+set",
+            "fs_savepath",
+            "{{.Dir}}",
+            "+set",
+            "net_port",
+            "{{.Ports.game}}",
+            "+exec",
+            "anyserve.cfg"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}"
+          }
+        }
+      },
+      "stop": {
+        "command": "quit",
+        "timeout_seconds": 20
+      },
+      "console": {
+        "say": "say {{.Message}}"
+      },
+      "backup": {
+        "paths": [
+          "q4base/server.cfg"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "libc6-i386"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "q4server"
+      },
+      "notes": [
+        "Bring your own game data. The archive holds the 1.4.2 server and patch paks, but not the base game's q4base/pak001.pk4 to pak012.pk4, which aren't redistributable. Copy those from your own copy of Quake 4 (Steam app 2210) into q4base, or the server stops with \"Couldn't load scripts/main.script\".",
+        "The server crashes on start if its folder path is very long (over about 100 characters); the default location is fine.",
+        "A 32-bit server. On 64-bit Debian or Ubuntu it needs the 32-bit C library (sudo apt install libc6-i386)."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "rust",
+      "name": "Rust",
+      "description": "Facepunch's Rust dedicated server, installed through SteamCMD.",
+      "homepage": "https://rust.facepunch.com",
+      "version": "2",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 258550
+        }
+      },
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name (shown in the server browser)",
+          "type": "string",
+          "default": "An Anyserve Rust server"
+        },
+        {
+          "key": "description",
+          "prompt": "Server description",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 500
+        },
+        {
+          "key": "world_size",
+          "prompt": "Map size",
+          "type": "int",
+          "default": 3500,
+          "min": 1000,
+          "max": 6000
+        },
+        {
+          "key": "seed",
+          "prompt": "Map seed",
+          "type": "int",
+          "default": 1337,
+          "min": 0,
+          "max": 2147483647
+        },
+        {
+          "key": "identity",
+          "prompt": "Save folder name (server identity)",
+          "type": "string",
+          "default": "anyserve"
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 28015,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 28017,
+          "protocol": "udp",
+          "description": "Server browser queries.",
+          "public": true
+        },
+        {
+          "name": "rcon",
+          "port": 28016,
+          "protocol": "tcp",
+          "description": "Remote admin (WebRCON). Keep this private.",
+          "public": false
+        },
+        {
+          "name": "app",
+          "port": 28082,
+          "protocol": "tcp",
+          "description": "Rust+ companion app.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "RustDedicated",
+          "args": [
+            "-batchmode",
+            "-nographics",
+            "+server.ip",
+            "0.0.0.0",
+            "+server.port",
+            "{{.Ports.game}}",
+            "+server.queryport",
+            "{{.Ports.query}}",
+            "+rcon.port",
+            "{{.Ports.rcon}}",
+            "+rcon.password",
+            "{{.Settings.rcon_password}}",
+            "+rcon.web",
+            "1",
+            "+app.port",
+            "{{.Ports.app}}",
+            "+server.hostname",
+            "{{.Settings.server_name}}",
+            "{{if .Settings.description}}+server.description{{end}}",
+            "{{.Settings.description}}",
+            "+server.identity",
+            "{{.Settings.identity}}",
+            "+server.level",
+            "Procedural Map",
+            "+server.seed",
+            "{{.Settings.seed}}",
+            "+server.worldsize",
+            "{{.Settings.world_size}}",
+            "+server.maxplayers",
+            "{{.Settings.max_players}}"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/RustDedicated_Data/Plugins/x86_64:{{.Dir}}/RustDedicated_Data/Plugins"
+          }
+        },
+        "windows": {
+          "command": "RustDedicated.exe",
+          "args": [
+            "-batchmode",
+            "-nographics",
+            "+server.ip",
+            "0.0.0.0",
+            "+server.port",
+            "{{.Ports.game}}",
+            "+server.queryport",
+            "{{.Ports.query}}",
+            "+rcon.port",
+            "{{.Ports.rcon}}",
+            "+rcon.password",
+            "{{.Settings.rcon_password}}",
+            "+rcon.web",
+            "1",
+            "+app.port",
+            "{{.Ports.app}}",
+            "+server.hostname",
+            "{{.Settings.server_name}}",
+            "{{if .Settings.description}}+server.description{{end}}",
+            "{{.Settings.description}}",
+            "+server.identity",
+            "{{.Settings.identity}}",
+            "+server.level",
+            "Procedural Map",
+            "+server.seed",
+            "{{.Settings.seed}}",
+            "+server.worldsize",
+            "{{.Settings.world_size}}",
+            "+server.maxplayers",
+            "{{.Settings.max_players}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "quit",
+        "timeout_seconds": 120
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "save": "server.save",
+        "rcon": {
+          "protocol": "webrcon",
+          "port": "rcon",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "server"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "rustserver"
+      },
+      "notes": [
+        "The server download is about 10 GB, and the first start builds the map, which takes several minutes.",
+        "Facepunch pushes a forced update on the first Thursday of each month. Run `anyserve update` then.",
+        "No native macOS server exists. Use the container target on a Mac."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "stationeers",
+      "name": "Stationeers",
+      "description": "RocketWerkz's Stationeers dedicated server, installed through SteamCMD.",
+      "homepage": "https://store.steampowered.com/app/544550/Stationeers/",
+      "version": "2",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 600760
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk",
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "type": "mkdir",
+          "path": "saves"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "An Anyserve Stationeers server"
+        },
+        {
+          "key": "save_name",
+          "prompt": "Save name",
+          "type": "string",
+          "default": "anyserve"
+        },
+        {
+          "key": "world",
+          "prompt": "World",
+          "description": "Used only when the save is first created.",
+          "type": "choice",
+          "default": "Lunar",
+          "choices": [
+            {
+              "value": "Lunar",
+              "label": "Moon"
+            },
+            {
+              "value": "Mars2",
+              "label": "Mars"
+            },
+            {
+              "value": "Europa3",
+              "label": "Europa"
+            },
+            {
+              "value": "Mimas",
+              "label": "Mimas"
+            },
+            {
+              "value": "Vulcan2",
+              "label": "Vulcan"
+            },
+            {
+              "value": "Venus",
+              "label": "Venus"
+            }
+          ]
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 30
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "save_interval",
+          "prompt": "Autosave every N seconds",
+          "type": "int",
+          "default": 300,
+          "min": 60
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 27016,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "update",
+          "port": 27015,
+          "protocol": "udp",
+          "description": "Steam query and updates.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "rocketstation_DedicatedServer.x86_64",
+          "args": [
+            "-LOAD",
+            "{{.Settings.save_name}}",
+            "{{.Settings.world}}",
+            "-settings",
+            "StartLocalHost",
+            "true",
+            "ServerVisible",
+            "true",
+            "GamePort",
+            "{{.Ports.game}}",
+            "UpdatePort",
+            "{{.Ports.update}}",
+            "AutoSave",
+            "true",
+            "SaveInterval",
+            "{{.Settings.save_interval}}",
+            "ServerName",
+            "{{.Settings.server_name}}",
+            "ServerMaxPlayers",
+            "{{.Settings.max_players}}",
+            "{{if .Settings.password}}ServerPassword{{end}}",
+            "{{.Settings.password}}",
+            "UPNPEnabled",
+            "false",
+            "LocalIpAddress",
+            "0.0.0.0"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}:{{.Dir}}/rocketstation_DedicatedServer_Data/Plugins/x86_64"
+          }
+        },
+        "windows": {
+          "command": "rocketstation_DedicatedServer.exe",
+          "args": [
+            "-LOAD",
+            "{{.Settings.save_name}}",
+            "{{.Settings.world}}",
+            "-settings",
+            "StartLocalHost",
+            "true",
+            "ServerVisible",
+            "true",
+            "GamePort",
+            "{{.Ports.game}}",
+            "UpdatePort",
+            "{{.Ports.update}}",
+            "AutoSave",
+            "true",
+            "SaveInterval",
+            "{{.Settings.save_interval}}",
+            "ServerName",
+            "{{.Settings.server_name}}",
+            "ServerMaxPlayers",
+            "{{.Settings.max_players}}",
+            "{{if .Settings.password}}ServerPassword{{end}}",
+            "{{.Settings.password}}",
+            "UPNPEnabled",
+            "false",
+            "LocalIpAddress",
+            "0.0.0.0"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 90
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "saves",
+          "setting.xml"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "stserver"
+      }
+    },
+    {
+      "schema": 1,
+      "id": "terraria",
+      "name": "Terraria",
+      "description": "Re-Logic's official vanilla Terraria dedicated server.",
+      "homepage": "https://terraria.org",
+      "version": "1.4.5.8-1",
+      "platforms": [
+        "linux",
+        "windows",
+        "darwin"
+      ],
+      "install": {
+        "archive": {
+          "url": "https://terraria.org/api/download/pc-dedicated-server/terraria-server-1458.zip",
+          "sha256": "f513a4ac9789d34af766291ae217c9cd7d9472e13782a0e2b17512f70d7a8334",
+          "subdir": {
+            "darwin": "1458/Mac/Terraria Server.app/Contents/MacOS",
+            "linux": "1458/Linux",
+            "windows": "1458/Windows"
+          }
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "TerrariaServer.bin.x86_64",
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "type": "chmod_exec",
+          "path": "TerrariaServer.bin.osx",
+          "os": [
+            "darwin"
+          ]
+        },
+        {
+          "type": "mkdir",
+          "path": "worlds"
+        }
+      ],
+      "settings": [
+        {
+          "key": "world_name",
+          "prompt": "World name",
+          "type": "string",
+          "default": "Anyserve"
+        },
+        {
+          "key": "world_size",
+          "prompt": "World size (used only when the world is first created)",
+          "type": "choice",
+          "default": "2",
+          "choices": [
+            {
+              "value": "1",
+              "label": "Small"
+            },
+            {
+              "value": "2",
+              "label": "Medium"
+            },
+            {
+              "value": "3",
+              "label": "Large"
+            }
+          ]
+        },
+        {
+          "key": "difficulty",
+          "prompt": "Difficulty (used only when the world is first created)",
+          "type": "choice",
+          "default": "0",
+          "choices": [
+            {
+              "value": "0",
+              "label": "Classic"
+            },
+            {
+              "value": "1",
+              "label": "Expert"
+            },
+            {
+              "value": "2",
+              "label": "Master"
+            },
+            {
+              "value": "3",
+              "label": "Journey"
+            }
+          ]
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 8,
+          "min": 1,
+          "max": 255
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "motd",
+          "prompt": "Message of the day",
+          "type": "string",
+          "default": "Welcome to an Anyserve Terraria server!",
+          "optional": true
+        },
+        {
+          "key": "seed",
+          "prompt": "World seed (leave empty for random)",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 7777,
+          "protocol": "tcp",
+          "description": "Players connect here.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "serverconfig.txt",
+          "template": "# Written by Anyserve. Changes here are replaced on reconfigure;\n# use `anyserve config` to change settings instead.\nworld={{.Dir}}/worlds/{{.Settings.world_name}}.wld\nworldpath={{.Dir}}/worlds\nworldname={{.Settings.world_name}}\nautocreate={{.Settings.world_size}}\ndifficulty={{.Settings.difficulty}}\n{{if .Settings.seed}}seed={{.Settings.seed}}\n{{end}}maxplayers={{.Settings.max_players}}\nport={{.Ports.game}}\n{{if .Settings.password}}password={{.Settings.password}}\n{{end}}motd={{.Settings.motd}}\nsecure=1\nupnp=0\nbanlist={{.Dir}}/banlist.txt\n",
+          "overwrite": true
+        }
+      ],
+      "run": {
+        "darwin": {
+          "command": "TerrariaServer.bin.osx",
+          "args": [
+            "-config",
+            "serverconfig.txt"
+          ]
+        },
+        "linux": {
+          "command": "TerrariaServer.bin.x86_64",
+          "args": [
+            "-config",
+            "serverconfig.txt"
+          ]
+        },
+        "windows": {
+          "command": "TerrariaServer.exe",
+          "args": [
+            "-config",
+            "serverconfig.txt"
+          ]
+        }
+      },
+      "stop": {
+        "command": "exit",
+        "timeout_seconds": 60
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "save": "save"
+      },
+      "backup": {
+        "paths": [
+          "worlds",
+          "serverconfig.txt",
+          "banlist.txt"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "terrariaserver"
+      },
+      "notes": [
+        "Vanilla server only. A TShock variant is planned.",
+        "The world is created on first start, which can take a minute."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "wurm-unlimited",
+      "name": "Wurm Unlimited",
+      "description": "Code Club AB's Wurm Unlimited dedicated server, run headless without the GUI launcher.",
+      "homepage": "https://www.wurmonline.com/wurm-unlimited/",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 402370
+        }
+      },
+      "steps": [
+        {
+          "type": "copy_dir_if_missing",
+          "from": "dist/Creative",
+          "to": "Creative"
+        },
+        {
+          "type": "copy_dir_if_missing",
+          "from": "dist/Adventure",
+          "to": "Adventure"
+        },
+        {
+          "type": "touch",
+          "path": "Creative/gamedir"
+        },
+        {
+          "type": "touch",
+          "path": "Adventure/gamedir"
+        },
+        {
+          "type": "copy_file_if_missing",
+          "from": "linux64/steamclient.so",
+          "to": "nativelibs/steamclient.so",
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "type": "chmod_exec",
+          "path": "WurmServerLauncher",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name (shown in the server browser)",
+          "type": "string",
+          "default": "An Anyserve Wurm server"
+        },
+        {
+          "key": "world",
+          "prompt": "World type",
+          "type": "choice",
+          "default": "Creative",
+          "choices": [
+            {
+              "value": "Creative",
+              "label": "Creative (Freedom kingdom, no PvP)"
+            },
+            {
+              "value": "Adventure",
+              "label": "Adventure (kingdoms and PvP)"
+            }
+          ]
+        },
+        {
+          "key": "home_kingdom",
+          "prompt": "Home kingdom (Adventure only; Creative always uses Freedom)",
+          "type": "choice",
+          "default": "4",
+          "choices": [
+            {
+              "value": "1",
+              "label": "Jenn-Kellon"
+            },
+            {
+              "value": "2",
+              "label": "Mol-Rehan"
+            },
+            {
+              "value": "3",
+              "label": "Horde of the Summoned"
+            },
+            {
+              "value": "4",
+              "label": "Freedom"
+            }
+          ]
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 200,
+          "min": 1,
+          "max": 1000
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "In-game admin password",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "epic_settings",
+          "prompt": "Use Epic cluster rules (Epic skill curve)?",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "ip",
+          "prompt": "IP address to bind (leave empty to let the server choose)",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 3724,
+          "protocol": "tcp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 27016,
+          "protocol": "udp",
+          "description": "Steam server browser queries.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "WurmServerLauncher",
+          "args": [
+            "START={{.Settings.world}}",
+            "SERVERNAME={{.Settings.server_name}}",
+            "EXTERNALPORT={{.Ports.game}}",
+            "QUERYPORT={{.Ports.query}}",
+            "MAXPLAYERS={{.Settings.max_players}}",
+            "ADMINPWD={{.Settings.admin_password}}",
+            "{{if .Settings.password}}SERVERPASSWORD={{.Settings.password}}{{end}}",
+            "HOMESERVER=true",
+            "HOMEKINGDOM={{if eq .Settings.world \"Creative\"}}4{{else}}{{.Settings.home_kingdom}}{{end}}",
+            "LOGINSERVER=true",
+            "EPICSETTINGS={{truefalse .Settings.epic_settings}}",
+            "{{if .Settings.ip}}IP={{.Settings.ip}}{{end}}"
+          ]
+        },
+        "windows": {
+          "command": "WurmServerLauncher.exe",
+          "args": [
+            "START={{.Settings.world}}",
+            "SERVERNAME={{.Settings.server_name}}",
+            "EXTERNALPORT={{.Ports.game}}",
+            "QUERYPORT={{.Ports.query}}",
+            "MAXPLAYERS={{.Settings.max_players}}",
+            "ADMINPWD={{.Settings.admin_password}}",
+            "{{if .Settings.password}}SERVERPASSWORD={{.Settings.password}}{{end}}",
+            "HOMESERVER=true",
+            "HOMEKINGDOM={{if eq .Settings.world \"Creative\"}}4{{else}}{{.Settings.home_kingdom}}{{end}}",
+            "LOGINSERVER=true",
+            "EPICSETTINGS={{truefalse .Settings.epic_settings}}",
+            "{{if .Settings.ip}}IP={{.Settings.ip}}{{end}}"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 120
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "Creative",
+          "Adventure"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not in LinuxGSM as far as we know. This is the first planned contribution."
+      },
+      "notes": [
+        "The headless launch arguments come from the original wurm_unlimited_server scripts.",
+        "Known issue on Linux: the server's bundled Java crashes inside Steam's library when it shuts down. Whether the last moments of play are saved hasn't been checked yet, so back up before stopping.",
+        "The Windows launch has not been tested yet.",
+        "No native macOS server exists. Use the container target on a Mac."
+      ]
+    }
+  ]
+}
