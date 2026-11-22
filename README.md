@@ -25,11 +25,9 @@ the index. To add or fix a service, open a pull request on the main
 repository; see its
 [CONTRIBUTING.md](https://github.com/jonsjava/anyserve/blob/main/CONTRIBUTING.md).
 
-The maintainer publishes a new index from the main repository with:
-
-```bash
-make publish-registry
-```
+A new index is published automatically when definition changes are merged
+into the main repository, by its
+[Publish registry workflow](https://github.com/jonsjava/anyserve/blob/main/.github/workflows/publish-registry.yml).
 
 ## Check the signature yourself
 
