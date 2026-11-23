@@ -1,8 +1,68 @@
 {
   "schema": 1,
   "name": "main",
-  "generated": "2026-11-22T08:46:57Z",
+  "generated": "2026-11-23T03:06:56Z",
   "services": [
+    {
+      "schema": 1,
+      "id": "actual-budget",
+      "name": "Actual Budget",
+      "description": "A local-first personal finance app using envelope budgeting, with sync between your devices.",
+      "homepage": "https://actualbudget.org",
+      "version": "26.11.0-1",
+      "kind": "stack",
+      "install": {},
+      "ports": [
+        {
+          "name": "http",
+          "port": 5006,
+          "protocol": "tcp",
+          "description": "The web app and sync server.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "actual",
+            "image": "actualbudget/actual-server:26.11.0@sha256:06cf186569cf58d93e12659ff1a517b65b5b0ebee7050a3991d4bd8a1d398da6",
+            "env": {
+              "ACTUAL_DATA_DIR": "/data",
+              "ACTUAL_PORT": "5006"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 5006
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Set a server password on your first visit.",
+        "Browsers only run Actual over HTTPS or on http://localhost. To use it from other devices, put an HTTPS proxy in front of it."
+      ]
+    },
     {
       "schema": 1,
       "id": "american-truck-simulator",
@@ -142,6 +202,252 @@
         "status": "upstream",
         "name": "atsserver"
       }
+    },
+    {
+      "schema": 1,
+      "id": "arma-reforger",
+      "name": "Arma Reforger",
+      "description": "Bohemia Interactive's military sandbox, as an official dedicated server.",
+      "homepage": "https://reforger.armaplatform.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 1874900
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "ArmaReforgerServer",
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "type": "mkdir",
+          "path": "profile"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Arma Reforger"
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password, for",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 32,
+          "min": 1,
+          "max": 128
+        },
+        {
+          "key": "scenario",
+          "prompt": "Scenario ID",
+          "description": "The default is Conflict on Everon. Others are listed by the server with -listScenarios.",
+          "type": "string",
+          "default": "{ECC61978EDCC2B5A}Missions/23_Campaign.conf"
+        },
+        {
+          "key": "crossplay",
+          "prompt": "Allow Xbox and PlayStation players?",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "public_address",
+          "prompt": "This server's public IP address (optional; detected automatically if empty)",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 2001,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 17777,
+          "protocol": "udp",
+          "description": "Steam queries (A2S), for server browsers.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "config.json",
+          "template": "{\n  \"bindAddress\": \"0.0.0.0\",\n  \"bindPort\": {{.Ports.game}},\n  \"publicAddress\": {{json .Settings.public_address}},\n  \"publicPort\": {{.Ports.game}},\n  \"a2s\": { \"address\": \"0.0.0.0\", \"port\": {{.Ports.query}} },\n  \"game\": {\n    \"name\": {{json .Settings.server_name}},\n    \"password\": {{json .Settings.password}},\n    \"passwordAdmin\": {{json .Settings.admin_password}},\n    \"scenarioId\": {{json .Settings.scenario}},\n    \"maxPlayers\": {{.Settings.max_players}},\n    \"visible\": true,\n    \"crossPlatform\": {{truefalse .Settings.crossplay}},\n    \"gameProperties\": { \"battlEye\": true }\n  }\n}\n",
+          "overwrite": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "ArmaReforgerServer",
+          "args": [
+            "-config",
+            "{{.Dir}}/config.json",
+            "-profile",
+            "{{.Dir}}/profile",
+            "-maxFPS",
+            "60",
+            "-backendlog",
+            "-nothrow"
+          ]
+        },
+        "windows": {
+          "command": "ArmaReforgerServer.exe",
+          "args": [
+            "-config",
+            "{{.Dir}}/config.json",
+            "-profile",
+            "{{.Dir}}/profile",
+            "-maxFPS",
+            "60",
+            "-backendlog",
+            "-nothrow"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "config.json",
+          "profile"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "libcurl4",
+          "libssl3"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "armarserver"
+      },
+      "notes": [
+        "Workshop mods aren't supported yet, because Anyserve rewrites config.json from its settings.",
+        "Players with admin rights log in from the in-game chat with `#login \u003cadmin password\u003e`."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "audiobookshelf",
+      "name": "Audiobookshelf",
+      "description": "An audiobook and podcast server with progress sync, web player and mobile apps.",
+      "homepage": "https://www.audiobookshelf.org",
+      "version": "2.38.0-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "audiobooks_folder",
+          "prompt": "Your audiobooks folder on this machine (e.g. ~/Audiobooks)",
+          "description": "Shared read-only. Add it as a library at /audiobooks in the web UI.",
+          "type": "folder",
+          "default": "~/Audiobooks"
+        },
+        {
+          "key": "podcasts_folder",
+          "prompt": "Folder for downloaded podcasts (leave empty for none)",
+          "description": "Shared read-write, because Audiobookshelf downloads episodes into it. Add it as a library at /podcasts.",
+          "type": "folder",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 13378,
+          "protocol": "tcp",
+          "description": "The web app, API and mobile app connections.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "config",
+          "metadata"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "audiobookshelf",
+            "image": "ghcr.io/advplyr/audiobookshelf:2.38.0@sha256:60064c23f32fd9099fd39e82c5132c51701d1221135bbca04cd099b589e1edc3",
+            "env": {
+              "PORT": "13378"
+            },
+            "volumes": [
+              {
+                "path": "config",
+                "target": "/config"
+              },
+              {
+                "path": "metadata",
+                "target": "/metadata"
+              },
+              {
+                "setting": "audiobooks_folder",
+                "target": "/audiobooks",
+                "read_only": true
+              },
+              {
+                "setting": "podcasts_folder",
+                "target": "/podcasts"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 13378
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Create the root account on your first visit, then add a library pointing at /audiobooks (and /podcasts).",
+        "Backups cover the database, covers and progress, not your audiobook files.",
+        "Phones need `--expose http` on your LAN, or an HTTPS proxy."
+      ]
     },
     {
       "schema": 1,
@@ -729,6 +1035,1828 @@
     },
     {
       "schema": 1,
+      "id": "factorio",
+      "name": "Factorio",
+      "description": "Wube Software's official headless Factorio server for multiplayer factory building.",
+      "homepage": "https://factorio.com",
+      "version": "2.1.24-1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "archive": {
+          "url": "https://factorio.com/get-download/2.1.24/headless/linux64",
+          "sha256": "c49b66cff90aceff87b30f2973af0df7f51712cb2ee3153e0169d9bed46a964f",
+          "subdir": {
+            "linux": "factorio"
+          },
+          "format": "tar.xz"
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "bin/x64/factorio"
+        },
+        {
+          "type": "copy_file_if_missing",
+          "from": "data/server-settings.example.json",
+          "to": "server-settings.json"
+        },
+        {
+          "type": "mkdir",
+          "path": "saves"
+        },
+        {
+          "type": "exec",
+          "command": "bin/x64/factorio",
+          "args": [
+            "--create",
+            "saves/world.zip"
+          ],
+          "creates": "saves/world.zip"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Factorio"
+        },
+        {
+          "key": "description",
+          "prompt": "Server description",
+          "type": "string",
+          "default": "Hosted with Anyserve"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players (0 for no limit)",
+          "type": "int",
+          "default": 0,
+          "min": 0,
+          "max": 65535
+        },
+        {
+          "key": "password",
+          "prompt": "Game password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "require_verification",
+          "prompt": "Only allow players with a factorio.com account?",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "autosave_minutes",
+          "prompt": "Minutes between autosaves",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 120
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 34197,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "rcon",
+          "port": 27015,
+          "protocol": "tcp",
+          "description": "Remote console for `anyserve console`.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "server-settings.json",
+          "format": "json",
+          "set": {
+            "autosave_interval": "{{.Settings.autosave_minutes}}",
+            "description": "{{.Settings.description}}",
+            "game_password": "{{.Settings.password}}",
+            "max_players": "{{.Settings.max_players}}",
+            "name": "{{.Settings.server_name}}",
+            "require_user_verification": "{{truefalse .Settings.require_verification}}",
+            "visibility.lan": "true",
+            "visibility.public": "false"
+          }
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "bin/x64/factorio",
+          "args": [
+            "--start-server-load-latest",
+            "--server-settings",
+            "server-settings.json",
+            "--port",
+            "{{.Ports.game}}",
+            "--rcon-port",
+            "{{.Ports.rcon}}",
+            "--rcon-password",
+            "{{.Settings.rcon_password}}"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {
+        "say": "{{.Message}}",
+        "save": "/server-save",
+        "rcon": {
+          "protocol": "source",
+          "port": "rcon",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "saves",
+          "server-settings.json",
+          "mods",
+          "server-adminlist.json",
+          "server-banlist.json",
+          "server-whitelist.json"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim"
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "fctrserver"
+      },
+      "notes": [
+        "The first install creates a new world in saves/world.zip. Each start loads the newest save, including autosaves.",
+        "Listing the server publicly needs a factorio.com user name and token in server-settings.json (visibility.public). Anyserve keeps it LAN-only by default.",
+        "Make yourself an admin from the console with `/promote \u003cname\u003e`."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "forgejo",
+      "name": "Forgejo",
+      "description": "A community-run Git forge (a Gitea fork) with pull requests, issues, packages and Actions.",
+      "homepage": "https://forgejo.org",
+      "version": "17.0.2-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "domain",
+          "prompt": "Host name people will use (e.g. git.example.com)",
+          "type": "string",
+          "default": "localhost"
+        },
+        {
+          "key": "root_url",
+          "prompt": "Full web address (e.g. https://git.example.com/)",
+          "type": "string",
+          "default": "http://localhost:3003/"
+        },
+        {
+          "key": "disable_registration",
+          "prompt": "Turn off sign-ups? (the first account you create becomes the admin either way)",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "secret_key",
+          "prompt": "Secret key (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "internal_token",
+          "prompt": "Internal token (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 3003,
+          "protocol": "tcp",
+          "description": "The web UI, API and Git over HTTPS (through your proxy).",
+          "public": false
+        },
+        {
+          "name": "ssh",
+          "port": 2223,
+          "protocol": "tcp",
+          "description": "Git over SSH.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {
+        "exec": {
+          "service": "forgejo",
+          "command": [
+            "sh"
+          ],
+          "description": "a shell in the Forgejo container, for `forgejo admin` commands"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "forgejo",
+            "image": "codeberg.org/forgejo/forgejo:17.0.2-rootless@sha256:39362ab93a94c0c9b8b330d2a877ddbb3f02fa8c0cba1b8d686d437b39f36a04",
+            "env": {
+              "FORGEJO__database__DB_TYPE": "sqlite3",
+              "FORGEJO__database__PATH": "/var/lib/gitea/data/forgejo.db",
+              "FORGEJO__security__INSTALL_LOCK": "true",
+              "FORGEJO__security__INTERNAL_TOKEN": "{{.Settings.internal_token}}",
+              "FORGEJO__security__SECRET_KEY": "{{.Settings.secret_key}}",
+              "FORGEJO__server__DOMAIN": "{{.Settings.domain}}",
+              "FORGEJO__server__HTTP_PORT": "3000",
+              "FORGEJO__server__ROOT_URL": "{{.Settings.root_url}}",
+              "FORGEJO__server__SSH_DOMAIN": "{{.Settings.domain}}",
+              "FORGEJO__server__SSH_LISTEN_PORT": "2222",
+              "FORGEJO__server__SSH_PORT": "{{.Ports.ssh}}",
+              "FORGEJO__server__START_SSH_SERVER": "true",
+              "FORGEJO__service__DISABLE_REGISTRATION": "{{truefalse .Settings.disable_registration}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/var/lib/gitea"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 3000
+              },
+              {
+                "port": "ssh",
+                "target": 2222
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The first account you register becomes the admin. Set disable_registration afterwards if it's just for you.",
+        "To reach it from other computers, add `--expose http` (and `--expose ssh` for Git over SSH), or put an HTTPS proxy in front of it."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "garrys-mod",
+      "name": "Garry's Mod",
+      "description": "Facepunch's physics sandbox, as a Source dedicated server.",
+      "homepage": "https://gmod.facepunch.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 4020,
+          "beta": "x86-64"
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "srcds_run_x64",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "hostname",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Garry's Mod"
+        },
+        {
+          "key": "gamemode",
+          "prompt": "Game mode",
+          "type": "string",
+          "default": "sandbox"
+        },
+        {
+          "key": "map",
+          "prompt": "Starting map",
+          "type": "string",
+          "default": "gm_flatgrass"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 16,
+          "min": 2,
+          "max": 128
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "gslt",
+          "prompt": "Steam game server login token, to be listed publicly (optional)",
+          "description": "Create one at https://steamcommunity.com/dev/managegameservers for app 4000.",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "workshop_collection",
+          "prompt": "Steam Workshop collection ID to download (optional)",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 27015,
+          "protocol": "both",
+          "description": "Players connect here. RCON also uses this port over TCP.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "garrysmod/cfg/anyserve.cfg",
+          "template": "// Written by Anyserve. Use server.cfg for your own settings.\nhostname {{json .Settings.hostname}}\nsv_password {{json .Settings.password}}\nrcon_password {{json .Settings.rcon_password}}\n",
+          "overwrite": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "srcds_run_x64",
+          "args": [
+            "-game",
+            "garrysmod",
+            "-console",
+            "-norestart",
+            "+ip",
+            "0.0.0.0",
+            "-port",
+            "{{.Ports.game}}",
+            "+maxplayers",
+            "{{.Settings.max_players}}",
+            "+gamemode",
+            "{{.Settings.gamemode}}",
+            "+map",
+            "{{.Settings.map}}",
+            "+exec",
+            "anyserve.cfg",
+            "{{if .Settings.gslt}}+sv_setsteamaccount{{end}}",
+            "{{.Settings.gslt}}",
+            "{{if .Settings.workshop_collection}}+host_workshop_collection{{end}}",
+            "{{.Settings.workshop_collection}}"
+          ]
+        },
+        "windows": {
+          "command": "srcds_win64.exe",
+          "args": [
+            "-game",
+            "garrysmod",
+            "-console",
+            "-norestart",
+            "+ip",
+            "0.0.0.0",
+            "-port",
+            "{{.Ports.game}}",
+            "+maxplayers",
+            "{{.Settings.max_players}}",
+            "+gamemode",
+            "{{.Settings.gamemode}}",
+            "+map",
+            "{{.Settings.map}}",
+            "+exec",
+            "anyserve.cfg",
+            "{{if .Settings.gslt}}+sv_setsteamaccount{{end}}",
+            "{{.Settings.gslt}}",
+            "{{if .Settings.workshop_collection}}+host_workshop_collection{{end}}",
+            "{{.Settings.workshop_collection}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "quit",
+        "timeout_seconds": 30
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "rcon": {
+          "protocol": "source",
+          "port": "game",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "garrysmod/cfg",
+          "garrysmod/data",
+          "garrysmod/addons",
+          "garrysmod/sv.db"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1",
+          "lib32stdc++6"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "gmodserver"
+      },
+      "notes": [
+        "The server buffers its output, so `anyserve logs` can lag behind until someone types in the console.",
+        "Uses Garry's Mod's 64-bit server branch (x86-64), which most add-ons now support.",
+        "Many maps and add-ons come from the Steam Workshop. Set workshop_collection, or add content to garrysmod/addons."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "gitea",
+      "name": "Gitea",
+      "description": "A lightweight self-hosted Git service with pull requests, issues, packages and CI (Actions).",
+      "homepage": "https://about.gitea.com",
+      "version": "28.4.0-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "domain",
+          "prompt": "Host name people will use (e.g. git.example.com)",
+          "type": "string",
+          "default": "localhost"
+        },
+        {
+          "key": "root_url",
+          "prompt": "Full web address (e.g. https://git.example.com/)",
+          "type": "string",
+          "default": "http://localhost:3000/"
+        },
+        {
+          "key": "disable_registration",
+          "prompt": "Turn off sign-ups? (the first account you create becomes the admin either way)",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "secret_key",
+          "prompt": "Secret key (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "internal_token",
+          "prompt": "Internal token (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 3000,
+          "protocol": "tcp",
+          "description": "The web UI, API and Git over HTTPS (through your proxy).",
+          "public": false
+        },
+        {
+          "name": "ssh",
+          "port": 2222,
+          "protocol": "tcp",
+          "description": "Git over SSH.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {
+        "exec": {
+          "service": "gitea",
+          "command": [
+            "sh"
+          ],
+          "description": "a shell in the Gitea container, for `gitea admin` commands"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data",
+          "config"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "gitea",
+            "image": "gitea/gitea:28.4.0-rootless@sha256:15ab7fadb44981a2b781f40c712cad07066197f395100ea1c6326e14e5bb073a",
+            "env": {
+              "GITEA__database__DB_TYPE": "sqlite3",
+              "GITEA__database__PATH": "/var/lib/gitea/data/gitea.db",
+              "GITEA__security__INSTALL_LOCK": "true",
+              "GITEA__security__INTERNAL_TOKEN": "{{.Settings.internal_token}}",
+              "GITEA__security__SECRET_KEY": "{{.Settings.secret_key}}",
+              "GITEA__server__DOMAIN": "{{.Settings.domain}}",
+              "GITEA__server__HTTP_PORT": "3000",
+              "GITEA__server__ROOT_URL": "{{.Settings.root_url}}",
+              "GITEA__server__SSH_DOMAIN": "{{.Settings.domain}}",
+              "GITEA__server__SSH_LISTEN_PORT": "2222",
+              "GITEA__server__SSH_PORT": "{{.Ports.ssh}}",
+              "GITEA__server__START_SSH_SERVER": "true",
+              "GITEA__service__DISABLE_REGISTRATION": "{{truefalse .Settings.disable_registration}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/var/lib/gitea"
+              },
+              {
+                "path": "config",
+                "target": "/etc/gitea"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 3000
+              },
+              {
+                "port": "ssh",
+                "target": 2222
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The first account you register becomes the admin. Set disable_registration afterwards if it's just for you.",
+        "To reach it from other computers, add `--expose http` (and `--expose ssh` for Git over SSH), or put an HTTPS proxy in front of it."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "gotify",
+      "name": "Gotify",
+      "description": "A self-hosted server for sending and receiving push messages, with a web UI and Android app.",
+      "homepage": "https://gotify.net",
+      "version": "3.1.1-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "admin_user",
+          "prompt": "Admin user name (created on first start)",
+          "type": "string",
+          "default": "admin"
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8070,
+          "protocol": "tcp",
+          "description": "The web UI, API and app connections.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "gotify",
+            "image": "gotify/server:3.1.1@sha256:44fc5bbd1c0618878e33073d38c2c13126b48f245c3fe12236b1da48eb203b86",
+            "env": {
+              "GOTIFY_DEFAULTUSER_NAME": "{{.Settings.admin_user}}",
+              "GOTIFY_DEFAULTUSER_PASS": "{{.Settings.admin_password}}",
+              "GOTIFY_SERVER_PORT": "8080"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/app/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The admin password only applies on the first start. Change it later in the web UI.",
+        "Phones need to reach the server, so add `--expose http` for your LAN or put an HTTPS proxy in front of it."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "grafana",
+      "name": "Grafana",
+      "description": "Dashboards and alerts for metrics and logs from Prometheus, InfluxDB, Loki, databases and more.",
+      "homepage": "https://grafana.com/oss/grafana/",
+      "version": "13.3.1-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "admin_user",
+          "prompt": "Admin user name",
+          "type": "string",
+          "default": "admin"
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "root_url",
+          "prompt": "Address people will use (e.g. https://grafana.example.com)",
+          "type": "string",
+          "default": "http://localhost:3002"
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 3002,
+          "protocol": "tcp",
+          "description": "The web UI and API.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "grafana",
+            "image": "grafana/grafana:13.3.1@sha256:0615ec4fbd4072004b7d86b46ded63013a74b7d6eb1119273dd89e8fa25c13cf",
+            "env": {
+              "GF_ANALYTICS_REPORTING_ENABLED": "false",
+              "GF_LOG_MODE": "console",
+              "GF_SECURITY_ADMIN_PASSWORD": "{{.Settings.admin_password}}",
+              "GF_SECURITY_ADMIN_USER": "{{.Settings.admin_user}}",
+              "GF_SERVER_ROOT_URL": "{{.Settings.root_url}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/var/lib/grafana"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 3000
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The admin password applies on the first start. Change it later in Grafana.",
+        "To read data from a service on this machine, use the machine's LAN address rather than localhost."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "harmony",
+      "name": "Harmony",
+      "description": "A federated chat and social app (Discord-style servers and channels, on the fediverse), with its Supabase backend, as a stack of containers.",
+      "homepage": "https://github.com/y4my4my4m/harmony",
+      "version": "1.9.7-1",
+      "kind": "stack",
+      "install": {
+        "archive": {
+          "url": "https://github.com/y4my4my4m/harmony/archive/refs/tags/v1.9.7.tar.gz",
+          "sha256": "74625f5434005d260bdd058f70723219df61e09a326954c3aa136e8ea235ecb9",
+          "subdir": {
+            "*": "harmony-1.9.7/db_schema"
+          },
+          "to": "harmony/db_schema"
+        },
+        "downloads": [
+          {
+            "url": "https://raw.githubusercontent.com/y4my4my4m/harmony/v1.9.7/self-host/Caddyfile",
+            "sha256": "b95f0dbf869b33784694c009e0bf7d9baab16ec591c091670bbd0cc4b2812667",
+            "to": "harmony/Caddyfile",
+            "always": true
+          },
+          {
+            "url": "https://raw.githubusercontent.com/y4my4my4m/harmony/v1.9.7/self-host/media-cache.conf",
+            "sha256": "99a963e1f3c92ec4903650245913dce10cdc6acfc4cde8cc3cd75e180dbfcda4",
+            "to": "harmony/media-cache.conf",
+            "always": true
+          },
+          {
+            "url": "https://raw.githubusercontent.com/jonsjava/harmony-kubernetes/dca4b75f66e23cbd8f693473c1f6228707d8d086/charts/harmony/files/migrate.sh",
+            "sha256": "03322c6ecedfd33fb3ea3db463095847e0e47d58417e8bbed3cf4b4664bcbad0",
+            "to": "harmony/migrate.sh",
+            "always": true
+          },
+          {
+            "url": "https://raw.githubusercontent.com/jonsjava/harmony-kubernetes/dca4b75f66e23cbd8f693473c1f6228707d8d086/charts/harmony/files/create-admin.mjs",
+            "sha256": "6a3076ac1eeac4fa0a60b15a763b3efac7e6f76a84b83e5d35dc53ed661aed1e",
+            "to": "harmony/create-admin.mjs",
+            "always": true
+          },
+          {
+            "url": "https://raw.githubusercontent.com/supabase/supabase/31b6368049a1d9f5ef409383567b3f9bdaf018e9/docker/volumes/db/realtime.sql",
+            "sha256": "7e9e442e7fc4dae05544c07b67bede37a00d84644304dfce4d937134cb4c8f88",
+            "to": "supabase/realtime.sql"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/supabase/supabase/31b6368049a1d9f5ef409383567b3f9bdaf018e9/docker/volumes/db/webhooks.sql",
+            "sha256": "b584aaaa0c393f27218f81e01e76e1d07d42f947083249adcd6097ad471cde62",
+            "to": "supabase/webhooks.sql"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/supabase/supabase/31b6368049a1d9f5ef409383567b3f9bdaf018e9/docker/volumes/db/roles.sql",
+            "sha256": "3ad717b225daa38aa982da26750f35641eb404e1eb5e69a763c22236ab96c1b2",
+            "to": "supabase/roles.sql"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/supabase/supabase/31b6368049a1d9f5ef409383567b3f9bdaf018e9/docker/volumes/db/jwt.sql",
+            "sha256": "1cc94a4f16f6e2932b383cd68e211a96bcae298437ca4120d8a5106396c58465",
+            "to": "supabase/jwt.sql"
+          }
+        ]
+      },
+      "settings": [
+        {
+          "key": "url",
+          "prompt": "Address people will use for Harmony (e.g. https://chat.example.com)",
+          "description": "Federation uses this name; don't change it after people have joined.",
+          "type": "string",
+          "default": "http://localhost:8090"
+        },
+        {
+          "key": "api_url",
+          "prompt": "Address of its API, on its own name (e.g. https://db.chat.example.com)",
+          "description": "Sign-in, data, uploads and live updates go here. Point it at the api port.",
+          "type": "string",
+          "default": "http://localhost:8091"
+        },
+        {
+          "key": "instance_name",
+          "prompt": "Instance name",
+          "type": "string",
+          "default": "Harmony"
+        },
+        {
+          "key": "admin_email",
+          "prompt": "Admin email (signs in with this)",
+          "type": "string",
+          "default": "admin@example.com"
+        },
+        {
+          "key": "admin_username",
+          "prompt": "Admin user name (3-24 of a-z, 0-9 and _)",
+          "description": "Harmony reserves admin, root, mod, staff, harmony and a few others.",
+          "type": "string",
+          "default": "owner"
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "registration",
+          "prompt": "Who can create an account?",
+          "type": "choice",
+          "default": "invite",
+          "choices": [
+            {
+              "value": "open",
+              "label": "Anyone"
+            },
+            {
+              "value": "invite",
+              "label": "People with an invitation"
+            },
+            {
+              "value": "closed",
+              "label": "Nobody (only the admin adds people)"
+            }
+          ]
+        },
+        {
+          "key": "upload_limit_mb",
+          "prompt": "Largest upload, in MB",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 5000
+        },
+        {
+          "key": "postgres_password",
+          "prompt": "Database password (leave empty to generate one)",
+          "description": "Set once; the database keeps the first one.",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "jwt_seed",
+          "prompt": "Secret behind the API keys and database encryption (leave empty to generate one)",
+          "description": "Never change it after the first start; encrypted data and every sign-in depend on it.",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "redis_password",
+          "prompt": "Queue password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "listener_password",
+          "prompt": "Password of the database role federation listens with (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "internal_secret",
+          "prompt": "Secret between Harmony's own services (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8090,
+          "protocol": "tcp",
+          "description": "The app and federation. Put an HTTPS proxy in front of it for the url setting.",
+          "public": false
+        },
+        {
+          "name": "api",
+          "port": 8091,
+          "protocol": "tcp",
+          "description": "The API (Supabase). Put an HTTPS proxy in front of it for the api_url setting.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "config/passwd",
+          "template": "root:x:0:0:root:/root:/bin/bash\npostgres:x:{{.UID}}:{{.GID}}:PostgreSQL administrator:/var/lib/postgresql:/bin/bash\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\n",
+          "overwrite": true
+        },
+        {
+          "path": "config/group",
+          "template": "root:x:0:\npostgres:x:{{.GID}}:\nnogroup:x:65534:\n",
+          "overwrite": true
+        },
+        {
+          "path": "config/pgsodium_root.key",
+          "template": "{{sha256 (print .Settings.jwt_seed \"/pgsodium\")}}",
+          "overwrite": true
+        },
+        {
+          "path": "config/kong.yml",
+          "template": "# Written by Anyserve. Supabase's API routes, after its docker/volumes/api/kong.yml.\n_format_version: '2.1'\n_transform: true\nconsumers:\n  - username: anon\n    keyauth_credentials:\n      - key: {{jwt (sha256 .Settings.jwt_seed) \"anon\"}}\n  - username: service_role\n    keyauth_credentials:\n      - key: {{jwt (sha256 .Settings.jwt_seed) \"service_role\"}}\nacls:\n  - consumer: anon\n    group: anon\n  - consumer: service_role\n    group: admin\nservices:\n  - name: auth-v1-open\n    url: http://auth:9999/verify\n    routes: [{ name: auth-v1-open, strip_path: true, paths: [/auth/v1/verify] }]\n    plugins: [{ name: cors }]\n  - name: auth-v1-open-callback\n    url: http://auth:9999/callback\n    routes: [{ name: auth-v1-open-callback, strip_path: true, paths: [/auth/v1/callback] }]\n    plugins: [{ name: cors }]\n  - name: auth-v1-open-authorize\n    url: http://auth:9999/authorize\n    routes: [{ name: auth-v1-open-authorize, strip_path: true, paths: [/auth/v1/authorize] }]\n    plugins: [{ name: cors }]\n  - name: auth-v1\n    url: http://auth:9999/\n    routes: [{ name: auth-v1-all, strip_path: true, paths: [/auth/v1/] }]\n    plugins:\n      - name: cors\n      - { name: key-auth, config: { hide_credentials: false } }\n      - { name: acl, config: { hide_groups_header: true, allow: [admin, anon] } }\n  - name: rest-v1\n    url: http://rest:3000/\n    routes: [{ name: rest-v1-all, strip_path: true, paths: [/rest/v1/] }]\n    plugins:\n      - name: cors\n      - { name: key-auth, config: { hide_credentials: true } }\n      - { name: acl, config: { hide_groups_header: true, allow: [admin, anon] } }\n  - name: graphql-v1\n    url: http://rest:3000/rpc/graphql\n    routes: [{ name: graphql-v1-all, strip_path: true, paths: [/graphql/v1] }]\n    plugins:\n      - name: cors\n      - { name: key-auth, config: { hide_credentials: true } }\n      - { name: request-transformer, config: { add: { headers: [\"Content-Profile:graphql_public\"] } } }\n      - { name: acl, config: { hide_groups_header: true, allow: [admin, anon] } }\n  # Realtime picks its tenant from the host name: realtime-dev.\n  - name: realtime-v1-ws\n    url: http://realtime-dev:4000/socket\n    protocol: ws\n    routes: [{ name: realtime-v1-ws, strip_path: true, paths: [/realtime/v1/] }]\n    plugins:\n      - name: cors\n      - { name: key-auth, config: { hide_credentials: false } }\n      - { name: acl, config: { hide_groups_header: true, allow: [admin, anon] } }\n  - name: realtime-v1-rest\n    url: http://realtime-dev:4000/api\n    protocol: http\n    routes: [{ name: realtime-v1-rest, strip_path: true, paths: [/realtime/v1/api] }]\n    plugins:\n      - name: cors\n      - { name: key-auth, config: { hide_credentials: false } }\n      - { name: acl, config: { hide_groups_header: true, allow: [admin, anon] } }\n  - name: storage-v1\n    url: http://storage:5000/\n    routes: [{ name: storage-v1-all, strip_path: true, paths: [/storage/v1/] }]\n    plugins: [{ name: cors }]\n",
+          "overwrite": true
+        },
+        {
+          "path": "config/web-config.json",
+          "template": "{\n  \"supabaseUrl\": {{json .Settings.api_url}},\n  \"supabaseAnonKey\": {{json (jwt (sha256 .Settings.jwt_seed) \"anon\")}},\n  \"domain\": {{json (urlHost .Settings.url)}},\n  \"instanceDomain\": {{json (urlHost .Settings.url)}},\n  \"instanceName\": {{json .Settings.instance_name}},\n  \"appUrl\": {{json .Settings.url}}\n}\n",
+          "overwrite": true
+        },
+        {
+          "path": "config/nginx.conf",
+          "template": "# Written by Anyserve.\npid /tmp/nginx.pid;\nworker_processes auto;\nerror_log /dev/stderr warn;\nevents { worker_connections 1024; }\nhttp {\n  include /etc/nginx/mime.types;\n  default_type application/octet-stream;\n  access_log off;\n  sendfile on;\n  client_body_temp_path /tmp/client_temp;\n  proxy_temp_path /tmp/proxy_temp;\n  fastcgi_temp_path /tmp/fastcgi_temp;\n  uwsgi_temp_path /tmp/uwsgi_temp;\n  scgi_temp_path /tmp/scgi_temp;\n  include /etc/nginx/conf.d/*.conf;\n}\n",
+          "overwrite": true
+        }
+      ],
+      "run": null,
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "data",
+          "config"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "supabase-db",
+            "image": "supabase/postgres:15.8.1.060@sha256:0e2279598bc0224fb5960c3a61eb23270cd60119427f3a7bdec86ba282600dcc",
+            "command": [
+              "postgres",
+              "-c",
+              "config_file=/etc/postgresql/postgresql.conf",
+              "-c",
+              "log_min_messages=fatal"
+            ],
+            "env": {
+              "JWT_EXP": "3600",
+              "JWT_SECRET": "{{sha256 .Settings.jwt_seed}}",
+              "PGDATABASE": "postgres",
+              "PGPASSWORD": "{{.Settings.postgres_password}}",
+              "PGPORT": "5432",
+              "POSTGRES_DB": "postgres",
+              "POSTGRES_HOST": "/var/run/postgresql",
+              "POSTGRES_PASSWORD": "{{.Settings.postgres_password}}",
+              "POSTGRES_PORT": "5432"
+            },
+            "volumes": [
+              {
+                "path": "data/postgres",
+                "target": "/var/lib/postgresql/data"
+              },
+              {
+                "path": "run/postgresql",
+                "target": "/var/run/postgresql"
+              },
+              {
+                "path": "config/passwd",
+                "target": "/etc/passwd",
+                "read_only": true
+              },
+              {
+                "path": "config/group",
+                "target": "/etc/group",
+                "read_only": true
+              },
+              {
+                "path": "config/pgsodium_root.key",
+                "target": "/etc/postgresql-custom/pgsodium_root.key",
+                "read_only": true
+              },
+              {
+                "path": "supabase/realtime.sql",
+                "target": "/docker-entrypoint-initdb.d/migrations/99-realtime.sql",
+                "read_only": true
+              },
+              {
+                "path": "supabase/webhooks.sql",
+                "target": "/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql",
+                "read_only": true
+              },
+              {
+                "path": "supabase/roles.sql",
+                "target": "/docker-entrypoint-initdb.d/init-scripts/99-roles.sql",
+                "read_only": true
+              },
+              {
+                "path": "supabase/jwt.sql",
+                "target": "/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql",
+                "read_only": true
+              }
+            ],
+            "health": {
+              "command": [
+                "pg_isready",
+                "-U",
+                "postgres",
+                "-h",
+                "localhost"
+              ],
+              "interval_seconds": 5,
+              "retries": 30
+            },
+            "shm_mb": 256
+          },
+          {
+            "name": "auth",
+            "image": "supabase/gotrue:v2.197.0@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b",
+            "env": {
+              "API_EXTERNAL_URL": "{{.Settings.api_url}}",
+              "GOTRUE_API_HOST": "0.0.0.0",
+              "GOTRUE_API_PORT": "9999",
+              "GOTRUE_DB_DATABASE_URL": "postgres://supabase_auth_admin:{{.Settings.postgres_password}}@supabase-db:5432/postgres",
+              "GOTRUE_DB_DRIVER": "postgres",
+              "GOTRUE_DISABLE_SIGNUP": "{{if eq .Settings.registration \"open\"}}false{{else}}true{{end}}",
+              "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED": "false",
+              "GOTRUE_EXTERNAL_EMAIL_ENABLED": "true",
+              "GOTRUE_EXTERNAL_PHONE_ENABLED": "false",
+              "GOTRUE_HOOK_BEFORE_USER_CREATED_ENABLED": "true",
+              "GOTRUE_HOOK_BEFORE_USER_CREATED_URI": "pg-functions://postgres/public/before_user_created_hook",
+              "GOTRUE_JWT_ADMIN_ROLES": "service_role",
+              "GOTRUE_JWT_AUD": "authenticated",
+              "GOTRUE_JWT_DEFAULT_GROUP_NAME": "authenticated",
+              "GOTRUE_JWT_EXP": "3600",
+              "GOTRUE_JWT_SECRET": "{{sha256 .Settings.jwt_seed}}",
+              "GOTRUE_MAILER_AUTOCONFIRM": "true",
+              "GOTRUE_MAILER_URLPATHS_CONFIRMATION": "/auth/v1/verify",
+              "GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE": "/auth/v1/verify",
+              "GOTRUE_MAILER_URLPATHS_INVITE": "/auth/v1/verify",
+              "GOTRUE_MAILER_URLPATHS_RECOVERY": "/auth/v1/verify",
+              "GOTRUE_SECURITY_SB_FORWARDED_FOR_ENABLED": "true",
+              "GOTRUE_SITE_URL": "{{.Settings.url}}",
+              "GOTRUE_SMS_AUTOCONFIRM": "false",
+              "GOTRUE_URI_ALLOW_LIST": "{{.Settings.url}},{{.Settings.url}}/**"
+            },
+            "depends_on": [
+              "supabase-db"
+            ],
+            "health": {
+              "command": [
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://localhost:9999/health"
+              ],
+              "interval_seconds": 5,
+              "retries": 30
+            }
+          },
+          {
+            "name": "rest",
+            "image": "postgrest/postgrest:v14.18@sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf",
+            "env": {
+              "PGRST_APP_SETTINGS_JWT_EXP": "3600",
+              "PGRST_DB_ANON_ROLE": "anon",
+              "PGRST_DB_SCHEMAS": "public,storage,graphql_public",
+              "PGRST_DB_URI": "postgres://authenticator:{{.Settings.postgres_password}}@supabase-db:5432/postgres",
+              "PGRST_DB_USE_LEGACY_GUCS": "false",
+              "PGRST_JWT_SECRET": "{{sha256 .Settings.jwt_seed}}"
+            },
+            "depends_on": [
+              "supabase-db"
+            ]
+          },
+          {
+            "name": "realtime-dev",
+            "image": "supabase/realtime:v2.153.6@sha256:4edfd6a2f976fbf9e46c084493e220fe6989bb19e898881f56339ffc29c2c2e7",
+            "env": {
+              "API_JWT_SECRET": "{{sha256 .Settings.jwt_seed}}",
+              "APP_NAME": "realtime",
+              "CHANNEL_ERROR_BACKOFF_MS": "100",
+              "CLIENT_PRESENCE_MAX_CALLS": "60",
+              "CLIENT_PRESENCE_WINDOW_MS": "30000",
+              "DB_AFTER_CONNECT_QUERY": "SET search_path TO _realtime",
+              "DB_ENC_KEY": "supabaserealtime",
+              "DB_HOST": "supabase-db",
+              "DB_NAME": "postgres",
+              "DB_PASSWORD": "{{.Settings.postgres_password}}",
+              "DB_PORT": "5432",
+              "DB_USER": "supabase_admin",
+              "DNS_NODES": "''",
+              "ERL_AFLAGS": "-proto_dist inet_tcp",
+              "METRICS_JWT_SECRET": "{{sha256 .Settings.jwt_seed}}",
+              "PORT": "4000",
+              "RLIMIT_NOFILE": "10000",
+              "RUN_JANITOR": "true",
+              "SECRET_KEY_BASE": "{{sha256 (print .Settings.jwt_seed \"/realtime\")}}",
+              "SEED_SELF_HOST": "true"
+            },
+            "depends_on": [
+              "supabase-db"
+            ],
+            "health": {
+              "command": [
+                "curl",
+                "-sSfL",
+                "--head",
+                "-o",
+                "/dev/null",
+                "-H",
+                "Authorization: Bearer {{jwt (sha256 .Settings.jwt_seed) \"anon\"}}",
+                "http://localhost:4000/api/tenants/realtime-dev/health"
+              ],
+              "interval_seconds": 5,
+              "retries": 40
+            }
+          },
+          {
+            "name": "storage",
+            "image": "supabase/storage-api:v1.90.0@sha256:b93ea65dad8eee7af34ab57d062915fcf085d4eb1a647f38f3bcea25d99850b1",
+            "env": {
+              "ANON_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"anon\"}}",
+              "DATABASE_URL": "postgres://supabase_storage_admin:{{.Settings.postgres_password}}@supabase-db:5432/postgres",
+              "ENABLE_IMAGE_TRANSFORMATION": "true",
+              "FILE_SIZE_LIMIT": "{{mul .Settings.upload_limit_mb 1048576}}",
+              "FILE_STORAGE_BACKEND_PATH": "/var/lib/storage",
+              "GLOBAL_S3_BUCKET": "stub",
+              "IMGPROXY_URL": "http://imgproxy:5001",
+              "PGRST_JWT_SECRET": "{{sha256 .Settings.jwt_seed}}",
+              "POSTGREST_URL": "http://rest:3000",
+              "REGION": "stub",
+              "SERVICE_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"service_role\"}}",
+              "STORAGE_BACKEND": "file",
+              "TENANT_ID": "stub"
+            },
+            "volumes": [
+              {
+                "path": "data/storage",
+                "target": "/var/lib/storage"
+              }
+            ],
+            "depends_on": [
+              "supabase-db",
+              "rest",
+              "imgproxy"
+            ],
+            "health": {
+              "command": [
+                "wget",
+                "--no-verbose",
+                "--tries=1",
+                "--spider",
+                "http://127.0.0.1:5000/status"
+              ],
+              "interval_seconds": 5,
+              "retries": 30
+            }
+          },
+          {
+            "name": "imgproxy",
+            "image": "darthsim/imgproxy:v4.0.22@sha256:b2953f6a7417be7e8a88819da9d3428270ca942cff280f8e143406fb5f962ed0",
+            "env": {
+              "IMGPROXY_AUTO_WEBP": "true",
+              "IMGPROXY_BIND": ":5001",
+              "IMGPROXY_LOCAL_FILESYSTEM_ROOT": "/",
+              "IMGPROXY_MAX_ANIMATION_FRAMES": "120",
+              "IMGPROXY_MAX_SRC_RESOLUTION": "50",
+              "IMGPROXY_PREFERRED_FORMATS": "jpeg,png,gif,webp,avif",
+              "IMGPROXY_USE_ETAG": "true"
+            },
+            "volumes": [
+              {
+                "path": "data/storage",
+                "target": "/var/lib/storage"
+              }
+            ],
+            "health": {
+              "command": [
+                "imgproxy",
+                "health"
+              ]
+            }
+          },
+          {
+            "name": "supabase-kong",
+            "image": "kong:3.9.4@sha256:0bf9f0968cbe341a97dccbfe43529bd1e276b5b911cc75015370f1d4b4a256fb",
+            "env": {
+              "KONG_DATABASE": "off",
+              "KONG_DECLARATIVE_CONFIG": "/etc/anyserve/kong.yml",
+              "KONG_DNS_NOT_FOUND_TTL": "1",
+              "KONG_DNS_ORDER": "LAST,A,CNAME",
+              "KONG_DNS_VALID_TTL": "5",
+              "KONG_NGINX_PROXY_PROXY_BUFFERS": "64 160k",
+              "KONG_NGINX_PROXY_PROXY_BUFFER_SIZE": "160k",
+              "KONG_PLUGINS": "request-transformer,cors,key-auth,acl",
+              "KONG_PREFIX": "/tmp/kong",
+              "KONG_PROXY_ACCESS_LOG": "/dev/stdout combined"
+            },
+            "volumes": [
+              {
+                "path": "config/kong.yml",
+                "target": "/etc/anyserve/kong.yml",
+                "read_only": true
+              }
+            ],
+            "depends_on": [
+              "auth",
+              "rest",
+              "storage"
+            ],
+            "health": {
+              "command": [
+                "kong",
+                "health"
+              ]
+            }
+          },
+          {
+            "name": "redis",
+            "image": "redis:7.4-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe",
+            "command": [
+              "redis-server",
+              "--appendonly",
+              "yes",
+              "--dir",
+              "/data",
+              "--requirepass",
+              "{{.Settings.redis_password}}"
+            ],
+            "volumes": [
+              {
+                "path": "data/redis",
+                "target": "/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "redis-cli",
+                "-a",
+                "{{.Settings.redis_password}}",
+                "--no-auth-warning",
+                "ping"
+              ],
+              "interval_seconds": 5
+            }
+          },
+          {
+            "name": "migrate",
+            "image": "postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73",
+            "command": [
+              "sh",
+              "/scripts/migrate.sh"
+            ],
+            "env": {
+              "DOMAIN": "{{urlHost .Settings.url}}",
+              "FILE_SIZE_LIMIT": "{{mul .Settings.upload_limit_mb 1048576}}",
+              "HOME": "/tmp",
+              "INSTANCE_NAME": "{{.Settings.instance_name}}",
+              "LISTENER_PASSWORD": "{{.Settings.listener_password}}",
+              "MIGRATIONS_DIR": "/src/db_schema/migrations",
+              "PGCONNECT_TIMEOUT": "10",
+              "PGDATABASE": "postgres",
+              "PGHOST": "supabase-db",
+              "PGPASSWORD": "{{.Settings.postgres_password}}",
+              "PGPORT": "5432",
+              "PGSSLMODE": "disable",
+              "PGUSER": "supabase_admin",
+              "REGISTRATION": "{{.Settings.registration}}",
+              "SCHEMA_WAIT": "300",
+              "STORAGE_ORIGIN": "{{lower .Settings.api_url}}"
+            },
+            "volumes": [
+              {
+                "path": "harmony/db_schema",
+                "target": "/src/db_schema",
+                "read_only": true
+              },
+              {
+                "path": "harmony/migrate.sh",
+                "target": "/scripts/migrate.sh",
+                "read_only": true
+              }
+            ],
+            "depends_on": [
+              "supabase-db",
+              "auth",
+              "realtime-dev",
+              "storage"
+            ],
+            "once": true
+          },
+          {
+            "name": "federation-server",
+            "image": "ghcr.io/y4my4my4m/harmony-federation:1.9.7@sha256:9b00283d4cd01e79d98f2400015bf788bc3dc887e0697b04b27d9c00865bdab8",
+            "env": {
+              "API_BASE_URL": "{{.Settings.url}}",
+              "APP_URL": "{{.Settings.url}}",
+              "CORS_ORIGIN": "{{.Settings.url}}",
+              "FEDERATION_LISTENER_URL": "postgresql://harmony_listener:{{.Settings.listener_password}}@supabase-db:5432/postgres",
+              "FEDERATION_MODE": "server",
+              "INSTANCE_DOMAIN": "{{urlHost .Settings.url}}",
+              "INSTANCE_NAME": "{{.Settings.instance_name}}",
+              "INTERNAL_API_SECRET": "{{.Settings.internal_secret}}",
+              "NODE_ENV": "production",
+              "PORT": "3001",
+              "PUBLIC_SUPABASE_URL": "{{.Settings.api_url}}",
+              "REDIS_URL": "redis://:{{.Settings.redis_password}}@redis:6379",
+              "SUPABASE_ANON_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"anon\"}}",
+              "SUPABASE_SERVICE_ROLE_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"service_role\"}}",
+              "SUPABASE_URL": "http://supabase-kong:8000",
+              "USE_BULLMQ_QUEUE": "true",
+              "VAPID_SUBJECT": "mailto:{{.Settings.admin_email}}"
+            },
+            "depends_on": [
+              "redis",
+              "migrate",
+              "supabase-kong"
+            ],
+            "health": {
+              "command": [
+                "node",
+                "-e",
+                "require('http').get('http://localhost:3001/health', r =\u003e process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () =\u003e process.exit(1))"
+              ],
+              "interval_seconds": 10
+            }
+          },
+          {
+            "name": "federation-worker",
+            "image": "ghcr.io/y4my4my4m/harmony-federation:1.9.7@sha256:9b00283d4cd01e79d98f2400015bf788bc3dc887e0697b04b27d9c00865bdab8",
+            "env": {
+              "API_BASE_URL": "{{.Settings.url}}",
+              "APP_URL": "{{.Settings.url}}",
+              "CORS_ORIGIN": "{{.Settings.url}}",
+              "FEDERATION_LISTENER_URL": "postgresql://harmony_listener:{{.Settings.listener_password}}@supabase-db:5432/postgres",
+              "FEDERATION_MODE": "worker",
+              "INSTANCE_DOMAIN": "{{urlHost .Settings.url}}",
+              "INSTANCE_NAME": "{{.Settings.instance_name}}",
+              "INTERNAL_API_SECRET": "{{.Settings.internal_secret}}",
+              "NODE_ENV": "production",
+              "PORT": "3001",
+              "PUBLIC_SUPABASE_URL": "{{.Settings.api_url}}",
+              "REDIS_URL": "redis://:{{.Settings.redis_password}}@redis:6379",
+              "SUPABASE_ANON_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"anon\"}}",
+              "SUPABASE_SERVICE_ROLE_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"service_role\"}}",
+              "SUPABASE_URL": "http://supabase-kong:8000",
+              "USE_BULLMQ_QUEUE": "true",
+              "VAPID_SUBJECT": "mailto:{{.Settings.admin_email}}"
+            },
+            "depends_on": [
+              "redis",
+              "migrate",
+              "federation-server"
+            ],
+            "health": {
+              "disable": true
+            }
+          },
+          {
+            "name": "admin",
+            "image": "ghcr.io/y4my4my4m/harmony-federation:1.9.7@sha256:9b00283d4cd01e79d98f2400015bf788bc3dc887e0697b04b27d9c00865bdab8",
+            "command": [
+              "node",
+              "/scripts/create-admin.mjs"
+            ],
+            "env": {
+              "ADMIN_EMAIL": "{{.Settings.admin_email}}",
+              "ADMIN_PASSWORD": "{{.Settings.admin_password}}",
+              "ADMIN_USERNAME": "{{.Settings.admin_username}}",
+              "FEDERATION_URL": "http://federation-server:3001",
+              "REGISTRATION": "{{.Settings.registration}}",
+              "SUPABASE_ANON_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"anon\"}}",
+              "SUPABASE_SERVICE_ROLE_KEY": "{{jwt (sha256 .Settings.jwt_seed) \"service_role\"}}",
+              "SUPABASE_URL": "http://supabase-kong:8000"
+            },
+            "volumes": [
+              {
+                "path": "harmony/create-admin.mjs",
+                "target": "/scripts/create-admin.mjs",
+                "read_only": true
+              }
+            ],
+            "depends_on": [
+              "migrate",
+              "federation-server"
+            ],
+            "once": true
+          },
+          {
+            "name": "web",
+            "image": "ghcr.io/y4my4my4m/harmony-web:1.9.7@sha256:39bb90c4fc6d5d17c8567d640e07c4fdbe4a4893fcae0ceb5e02488d913eb584",
+            "command": [
+              "/usr/sbin/nginx",
+              "-c",
+              "/etc/anyserve/nginx.conf",
+              "-g",
+              "daemon off;"
+            ],
+            "volumes": [
+              {
+                "path": "config/nginx.conf",
+                "target": "/etc/anyserve/nginx.conf",
+                "read_only": true
+              },
+              {
+                "path": "config/web-config.json",
+                "target": "/usr/share/nginx/html/config.json",
+                "read_only": true
+              }
+            ]
+          },
+          {
+            "name": "media-cache",
+            "image": "nginx:1.31-alpine@sha256:fb4658584bd9a916ffb6f6e365f97c25cfdb2923801f551ea08356e695f14ff7",
+            "command": [
+              "/usr/sbin/nginx",
+              "-c",
+              "/etc/anyserve/nginx.conf",
+              "-g",
+              "daemon off;"
+            ],
+            "volumes": [
+              {
+                "path": "config/nginx.conf",
+                "target": "/etc/anyserve/nginx.conf",
+                "read_only": true
+              },
+              {
+                "path": "harmony/media-cache.conf",
+                "target": "/etc/nginx/conf.d/default.conf",
+                "read_only": true
+              },
+              {
+                "path": "data/media-cache",
+                "target": "/var/cache/nginx/media"
+              }
+            ],
+            "depends_on": [
+              "supabase-kong"
+            ]
+          },
+          {
+            "name": "router",
+            "image": "caddy:2.10-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d",
+            "command": [
+              "sh",
+              "-c",
+              "cp /usr/bin/caddy /tmp/caddy \u0026\u0026 exec /tmp/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"
+            ],
+            "env": {
+              "CADDY_TLS": "internal",
+              "DB_DOMAIN": "http://:8081",
+              "DOMAIN": "http://:8080",
+              "ENABLE_VOICE": "false",
+              "XDG_CONFIG_HOME": "/tmp/caddy-config",
+              "XDG_DATA_HOME": "/tmp/caddy-data"
+            },
+            "volumes": [
+              {
+                "path": "harmony/Caddyfile",
+                "target": "/etc/caddy/Caddyfile",
+                "read_only": true
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              },
+              {
+                "port": "api",
+                "target": 8081
+              }
+            ],
+            "depends_on": [
+              "web",
+              "federation-server",
+              "supabase-kong",
+              "media-cache"
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing"
+      },
+      "notes": [
+        "Needs Docker with the Compose plugin, about 3 GB of images and 2 GB of memory.",
+        "Two addresses: the app (port http) and its API (port api). Behind an HTTPS proxy, point https://chat.example.com at http and https://db.chat.example.com at api, then set url and api_url to those. Both listen on 127.0.0.1 only; --expose http --expose api opens them to your network.",
+        "The admin account is created on every start if it's missing; `anyserve config \u003cname\u003e --show-secrets` shows its password. Changing admin_password later doesn't change an existing account's password.",
+        "Never change jwt_seed or postgres_password after the first start.",
+        "Without a mail server, new addresses count as confirmed and invitations are links you share yourself. Voice (LiveKit), bots, push notifications and the Discord bridge aren't set up.",
+        "Harmony is AGPL-3.0 with attribution and trademark terms; this runs its unmodified images. An unofficial package, not endorsed by the Harmony project."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "immich",
+      "name": "Immich",
+      "description": "A self-hosted photo and video library with phone backup, face recognition and smart search.",
+      "homepage": "https://immich.app",
+      "version": "3.4.2-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "external_library",
+          "prompt": "Existing photo folder to show in Immich, read-only (leave empty for none)",
+          "description": "Add it in Immich as an external library at /external. New uploads from phones go to the instance's own library folder.",
+          "type": "folder",
+          "optional": true
+        },
+        {
+          "key": "postgres_password",
+          "prompt": "Database password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 2283,
+          "protocol": "tcp",
+          "description": "The web app, API and phone app connections.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {
+        "exec": {
+          "service": "immich-server",
+          "command": [
+            "sh"
+          ],
+          "description": "a shell in the Immich server container, for `immich-admin` (such as immich-admin reset-admin-password)"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data/postgres"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "database",
+            "image": "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23",
+            "env": {
+              "POSTGRES_DB": "immich",
+              "POSTGRES_INITDB_ARGS": "--data-checksums",
+              "POSTGRES_PASSWORD": "{{.Settings.postgres_password}}",
+              "POSTGRES_USER": "immich"
+            },
+            "volumes": [
+              {
+                "path": "data/postgres",
+                "target": "/var/lib/postgresql/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "pg_isready",
+                "-U",
+                "immich",
+                "-d",
+                "immich"
+              ],
+              "interval_seconds": 5,
+              "retries": 30
+            },
+            "shm_mb": 128
+          },
+          {
+            "name": "redis",
+            "image": "valkey/valkey:9@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd",
+            "volumes": [
+              {
+                "path": "data/redis",
+                "target": "/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "valkey-cli",
+                "ping"
+              ],
+              "interval_seconds": 5,
+              "retries": 20
+            }
+          },
+          {
+            "name": "machine-learning",
+            "image": "ghcr.io/immich-app/immich-machine-learning:v3.4.2@sha256:739405742a79bd7447227c553bb62ed5491aa36acf00bc667af7f9c93b6fae91",
+            "env": {
+              "MACHINE_LEARNING_MODEL_REVISION": "v2"
+            },
+            "volumes": [
+              {
+                "path": "cache/models",
+                "target": "/cache"
+              }
+            ]
+          },
+          {
+            "name": "immich-server",
+            "image": "ghcr.io/immich-app/immich-server:v3.4.2@sha256:fc880c1bf665b4aab1e74c15e56ab871225989cd546536e6b77e771869af06bd",
+            "env": {
+              "DB_DATABASE_NAME": "immich",
+              "DB_HOSTNAME": "database",
+              "DB_PASSWORD": "{{.Settings.postgres_password}}",
+              "DB_USERNAME": "immich",
+              "IMMICH_MACHINE_LEARNING_URL": "http://machine-learning:3003",
+              "REDIS_HOSTNAME": "redis"
+            },
+            "volumes": [
+              {
+                "path": "library",
+                "target": "/data"
+              },
+              {
+                "setting": "external_library",
+                "target": "/external",
+                "read_only": true
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 2283
+              }
+            ],
+            "depends_on": [
+              "database",
+              "redis"
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Create the admin account on your first visit.",
+        "Anyserve backups cover the database only, because photo libraries are often huge. Back up the library folder inside the instance with your usual tools as well.",
+        "Phones need `--expose http` on your LAN, or an HTTPS proxy for use away from home.",
+        "Machine learning (faces, smart search) downloads its models on first use and needs a few GB of memory."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "jellyfin",
+      "name": "Jellyfin",
+      "description": "A free media server for your films, TV, music and photos, with apps for TVs, phones and browsers.",
+      "homepage": "https://jellyfin.org",
+      "version": "12.4-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "media_folder",
+          "prompt": "Your media folder on this machine (e.g. ~/Videos)",
+          "description": "Shared read-only at /media. Add libraries from its subfolders in the setup wizard.",
+          "type": "folder",
+          "default": "~/Videos"
+        },
+        {
+          "key": "published_url",
+          "prompt": "Address apps should use, if it differs from this machine's (optional)",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8096,
+          "protocol": "tcp",
+          "description": "The web app, API and TV or phone app connections.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "config"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "jellyfin",
+            "image": "jellyfin/jellyfin:12.4@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771",
+            "env": {
+              "JELLYFIN_PublishedServerUrl": "{{.Settings.published_url}}"
+            },
+            "volumes": [
+              {
+                "path": "config",
+                "target": "/config"
+              },
+              {
+                "path": "cache",
+                "target": "/cache"
+              },
+              {
+                "setting": "media_folder",
+                "target": "/media",
+                "read_only": true
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8096
+              }
+            ],
+            "shm_mb": 256
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Run the setup wizard on your first visit and add libraries from folders under /media.",
+        "Hardware transcoding (GPU) isn't set up, because it needs device access that Anyserve stacks don't allow. Software transcoding works.",
+        "TVs and phones need `--expose http` on your LAN. Automatic discovery on the LAN isn't available; enter the address by hand.",
+        "Backups cover settings, users and watch history, not your media or the cache."
+      ]
+    },
+    {
+      "schema": 1,
       "id": "killing-floor",
       "name": "Killing Floor",
       "description": "Tripwire's original Killing Floor dedicated server, installed through SteamCMD with a Steam account.",
@@ -902,7 +3030,7 @@
       "name": "Lemmy",
       "description": "A federated link aggregator and forum (like Reddit, on the fediverse), as a stack of containers.",
       "homepage": "https://join-lemmy.org",
-      "version": "0.19.21-3",
+      "version": "0.19.21-4",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -1108,8 +3236,1582 @@
       },
       "notes": [
         "Needs Docker with the Compose plugin.",
-        "The site listens on 127.0.0.1 only. Put an HTTPS reverse proxy (Caddy, nginx, a tunnel) in front of it for your domain.",
-        "The admin account is created on the first start; `anyserve info` doesn't show generated passwords, but they're in the instance's instance.json."
+        "The site listens on 127.0.0.1 only. Put an HTTPS reverse proxy (Caddy, nginx, a tunnel) in front of it for your domain, or open it to your network with `--expose http`.",
+        "The admin account is created on the first start. `anyserve config \u003cname\u003e --show-secrets` shows its generated password."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "mealie",
+      "name": "Mealie",
+      "description": "A recipe manager and meal planner that imports recipes from any website by URL.",
+      "homepage": "https://mealie.io",
+      "version": "3.31.0-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "base_url",
+          "prompt": "Address people will use (e.g. https://recipes.example.com)",
+          "type": "string",
+          "default": "http://localhost:9925"
+        },
+        {
+          "key": "allow_signup",
+          "prompt": "Let anyone with the address create an account?",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "timezone",
+          "prompt": "Time zone (e.g. Europe/London)",
+          "type": "string",
+          "default": "UTC"
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 9925,
+          "protocol": "tcp",
+          "description": "The web app and API.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "mealie",
+            "image": "ghcr.io/mealie-recipes/mealie:v3.31.0@sha256:97e21ac96e9a8d1ee15aaf558ba3f14998936b9d6f334e40ebb4c6c2127dc12f",
+            "env": {
+              "ALLOW_SIGNUP": "{{truefalse .Settings.allow_signup}}",
+              "BASE_URL": "{{.Settings.base_url}}",
+              "DB_ENGINE": "sqlite",
+              "TZ": "{{.Settings.timezone}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/app/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 9000
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Log in with changeme@example.com and password MyPassword, then change both straight away.",
+        "To reach it from other computers on your network, add `--expose http`."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "memos",
+      "name": "Memos",
+      "description": "A lightweight, self-hosted note-taking app for quick thoughts, in a timeline you can search and share.",
+      "homepage": "https://usememos.com",
+      "version": "26.11.1-1",
+      "kind": "stack",
+      "install": {},
+      "ports": [
+        {
+          "name": "http",
+          "port": 5230,
+          "protocol": "tcp",
+          "description": "The web app and API.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "memos",
+            "image": "neosmemo/memos:26.11.1@sha256:5dcd6e6b973a55b964f2fe2ccdaa33319463ab448a23404ebb5d2acbd19299ba",
+            "env": {
+              "MEMOS_DATA": "/var/opt/memos",
+              "MEMOS_MODE": "prod",
+              "MEMOS_PORT": "5230"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/var/opt/memos"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 5230
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The first account you create becomes the admin.",
+        "To reach it from other computers on your network, add `--expose http`."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "mindustry",
+      "name": "Mindustry",
+      "description": "Anuken's open-source factory-building tower defence game, as a dedicated server.",
+      "homepage": "https://mindustrygame.github.io",
+      "version": "160.8-1",
+      "platforms": [
+        "linux",
+        "windows",
+        "darwin"
+      ],
+      "install": {
+        "downloads": [
+          {
+            "url": "https://github.com/Anuken/Mindustry/releases/download/v160.8/server-release.jar",
+            "sha256": "faeaf247a8b622de940181a96cb21cb20692d3c3da4e8ac3f79cb4af5059aa6c",
+            "to": "server-release.jar",
+            "always": true
+          }
+        ]
+      },
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Mindustry"
+        },
+        {
+          "key": "description",
+          "prompt": "Server description",
+          "type": "string",
+          "default": "Hosted with Anyserve"
+        },
+        {
+          "key": "mode",
+          "prompt": "Game mode (used when a map is set)",
+          "type": "choice",
+          "default": "survival",
+          "choices": [
+            {
+              "value": "survival",
+              "label": "Survival"
+            },
+            {
+              "value": "attack",
+              "label": "Attack"
+            },
+            {
+              "value": "pvp",
+              "label": "PvP"
+            },
+            {
+              "value": "sandbox",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "map",
+          "prompt": "Map name, with underscores for spaces (leave empty for a random survival map)",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "memory_mb",
+          "prompt": "Memory for the server in MB",
+          "type": "int",
+          "default": 1024,
+          "min": 256,
+          "max": 32768
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 6567,
+          "protocol": "both",
+          "description": "Players connect here.",
+          "public": true
+        }
+      ],
+      "run": {
+        "darwin": {
+          "command": "server-release.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "config port {{.Ports.game}},config name {{.Settings.server_name}},config desc {{.Settings.description}},{{if .Settings.map}}host {{.Settings.map}} {{.Settings.mode}}{{else}}host{{end}}"
+          ]
+        },
+        "linux": {
+          "command": "server-release.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "config port {{.Ports.game}},config name {{.Settings.server_name}},config desc {{.Settings.description}},{{if .Settings.map}}host {{.Settings.map}} {{.Settings.mode}}{{else}}host{{end}}"
+          ]
+        },
+        "windows": {
+          "command": "server-release.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "config port {{.Ports.game}},config name {{.Settings.server_name}},config desc {{.Settings.description}},{{if .Settings.map}}host {{.Settings.map}} {{.Settings.mode}}{{else}}host{{end}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "exit",
+        "timeout_seconds": 30
+      },
+      "console": {
+        "say": "say {{.Message}}"
+      },
+      "backup": {
+        "paths": [
+          "config"
+        ]
+      },
+      "container": {
+        "image": "eclipse-temurin:21-jre"
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "mindustryserver"
+      },
+      "notes": [
+        "Needs Java 17 or newer.",
+        "With no map set, each start hosts a random map. Use the console's `host \u003cmap\u003e \u003cmode\u003e` to pick one, and `save \u003cslot\u003e` / `load \u003cslot\u003e` to keep a game.",
+        "Server names can't contain commas, because of how settings reach the server."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "minecraft-bedrock",
+      "name": "Minecraft (Bedrock Edition)",
+      "description": "Mojang's official Bedrock Dedicated Server, for players on phones, consoles and Windows.",
+      "homepage": "https://www.minecraft.net/en-us/download/server/bedrock",
+      "version": "1.26.66.1-1",
+      "platforms": [
+        "linux"
+      ],
+      "install": {
+        "archive": {
+          "url": "https://www.minecraft.net/bedrockdedicatedserver/bin-linux/bedrock-server-1.26.66.1.zip",
+          "sha256": "e87bcd95bec5cc34b065ca956825c6abb7a0c356ae79408302845069cecaa6bf",
+          "keep": [
+            "server.properties",
+            "allowlist.json",
+            "permissions.json"
+          ]
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "bedrock_server"
+        }
+      ],
+      "settings": [
+        {
+          "key": "accept_eula",
+          "prompt": "Do you agree to the Minecraft EULA (https://aka.ms/MinecraftEULA) and Privacy Policy (https://go.microsoft.com/fwlink/?LinkId=521839)?",
+          "description": "Mojang requires this to download and run the server.",
+          "type": "bool",
+          "must_accept": true
+        },
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Bedrock"
+        },
+        {
+          "key": "gamemode",
+          "prompt": "Game mode",
+          "type": "choice",
+          "default": "survival",
+          "choices": [
+            {
+              "value": "survival",
+              "label": "Survival"
+            },
+            {
+              "value": "creative",
+              "label": "Creative"
+            },
+            {
+              "value": "adventure",
+              "label": "Adventure"
+            }
+          ]
+        },
+        {
+          "key": "difficulty",
+          "prompt": "Difficulty",
+          "type": "choice",
+          "default": "easy",
+          "choices": [
+            {
+              "value": "peaceful",
+              "label": "Peaceful"
+            },
+            {
+              "value": "easy",
+              "label": "Easy"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "hard",
+              "label": "Hard"
+            }
+          ]
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "allow_list",
+          "prompt": "Only let players on the allow list join?",
+          "description": "Add players from the console with `allowlist add \u003cname\u003e`.",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "allow_cheats",
+          "prompt": "Allow cheats and commands for operators?",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "level_name",
+          "prompt": "World name",
+          "type": "string",
+          "default": "Bedrock level"
+        },
+        {
+          "key": "seed",
+          "prompt": "World seed (leave empty for random; used when the world is created)",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 19132,
+          "protocol": "udp",
+          "description": "Players connect here (IPv4).",
+          "public": true
+        },
+        {
+          "name": "game_v6",
+          "port": 19133,
+          "protocol": "udp",
+          "description": "The IPv6 game port. Forward it only if you use IPv6.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "server.properties",
+          "format": "lines",
+          "set": {
+            "allow-cheats=": "allow-cheats={{truefalse .Settings.allow_cheats}}",
+            "allow-list=": "allow-list={{truefalse .Settings.allow_list}}",
+            "difficulty=": "difficulty={{.Settings.difficulty}}",
+            "gamemode=": "gamemode={{.Settings.gamemode}}",
+            "level-name=": "level-name={{.Settings.level_name}}",
+            "level-seed=": "level-seed={{.Settings.seed}}",
+            "max-players=": "max-players={{.Settings.max_players}}",
+            "server-name=": "server-name={{.Settings.server_name}}",
+            "server-port=": "server-port={{.Ports.game}}",
+            "server-portv6=": "server-portv6={{.Ports.game_v6}}"
+          }
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "bedrock_server",
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}"
+          }
+        }
+      },
+      "stop": {
+        "command": "stop",
+        "timeout_seconds": 60
+      },
+      "console": {
+        "say": "say {{.Message}}"
+      },
+      "backup": {
+        "paths": [
+          "worlds",
+          "server.properties",
+          "allowlist.json",
+          "permissions.json"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "libcurl4"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "mcbserver"
+      },
+      "notes": [
+        "Installing asks you to agree to Mojang's EULA and Microsoft's privacy policy (or pass `--set accept_eula=true`).",
+        "The allow list, permissions and your server.properties edits are kept when Anyserve updates the server.",
+        "Mojang ships the Windows server as a separate download, which Anyserve doesn't install yet."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "minecraft-paper",
+      "name": "Minecraft (Paper)",
+      "description": "Paper, the fast Minecraft Java Edition server that runs Bukkit and Paper plugins.",
+      "homepage": "https://papermc.io",
+      "version": "26.3-257-1",
+      "platforms": [
+        "linux",
+        "windows",
+        "darwin"
+      ],
+      "install": {
+        "downloads": [
+          {
+            "url": "https://fill-data.papermc.io/v1/objects/64a5bd44910cb982b2648e9a35036cc95a6de4d561e15812aecf5411f84f7b01/paper-26.3-257.jar",
+            "sha256": "64a5bd44910cb982b2648e9a35036cc95a6de4d561e15812aecf5411f84f7b01",
+            "to": "server.jar",
+            "always": true
+          }
+        ]
+      },
+      "settings": [
+        {
+          "key": "accept_eula",
+          "prompt": "Do you agree to the Minecraft EULA (https://aka.ms/MinecraftEULA)?",
+          "description": "Mojang requires this before the server runs.",
+          "type": "bool",
+          "must_accept": true
+        },
+        {
+          "key": "motd",
+          "prompt": "Server description shown in the server list",
+          "type": "string",
+          "default": "An Anyserve Paper server"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 20,
+          "min": 1,
+          "max": 1000
+        },
+        {
+          "key": "gamemode",
+          "prompt": "Game mode",
+          "type": "choice",
+          "default": "survival",
+          "choices": [
+            {
+              "value": "survival",
+              "label": "Survival"
+            },
+            {
+              "value": "creative",
+              "label": "Creative"
+            },
+            {
+              "value": "adventure",
+              "label": "Adventure"
+            },
+            {
+              "value": "spectator",
+              "label": "Spectator"
+            }
+          ]
+        },
+        {
+          "key": "difficulty",
+          "prompt": "Difficulty",
+          "type": "choice",
+          "default": "normal",
+          "choices": [
+            {
+              "value": "peaceful",
+              "label": "Peaceful"
+            },
+            {
+              "value": "easy",
+              "label": "Easy"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "hard",
+              "label": "Hard"
+            }
+          ]
+        },
+        {
+          "key": "pvp",
+          "prompt": "Allow players to fight each other?",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "online_mode",
+          "prompt": "Check players' Minecraft accounts (online mode)?",
+          "description": "Leave on unless you know why not. Off lets anyone join under any name.",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "whitelist",
+          "prompt": "Only let whitelisted players join?",
+          "description": "Add players from the console with `whitelist add \u003cname\u003e`.",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "seed",
+          "prompt": "World seed (leave empty for random; used when the world is created)",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "view_distance",
+          "prompt": "View distance in chunks",
+          "type": "int",
+          "default": 10,
+          "min": 3,
+          "max": 32
+        },
+        {
+          "key": "memory_mb",
+          "prompt": "Memory for the server in MB",
+          "type": "int",
+          "default": 2048,
+          "min": 512,
+          "max": 65536
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 25565,
+          "protocol": "tcp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "rcon",
+          "port": 25575,
+          "protocol": "tcp",
+          "description": "Remote console for `anyserve console`.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "eula.txt",
+          "template": "# Written by Anyserve from the accept_eula setting.\neula={{truefalse .Settings.accept_eula}}\n",
+          "overwrite": true
+        },
+        {
+          "path": "server.properties",
+          "template": "# Created by Anyserve. Minecraft adds its other settings on first start.\n",
+          "format": "lines",
+          "set": {
+            "difficulty=": "difficulty={{.Settings.difficulty}}",
+            "enable-rcon=": "enable-rcon=true",
+            "enforce-whitelist=": "enforce-whitelist={{truefalse .Settings.whitelist}}",
+            "gamemode=": "gamemode={{.Settings.gamemode}}",
+            "level-seed=": "level-seed={{.Settings.seed}}",
+            "max-players=": "max-players={{.Settings.max_players}}",
+            "motd=": "motd={{.Settings.motd}}",
+            "online-mode=": "online-mode={{truefalse .Settings.online_mode}}",
+            "pvp=": "pvp={{truefalse .Settings.pvp}}",
+            "rcon.password=": "rcon.password={{.Settings.rcon_password}}",
+            "rcon.port=": "rcon.port={{.Ports.rcon}}",
+            "server-port=": "server-port={{.Ports.game}}",
+            "view-distance=": "view-distance={{.Settings.view_distance}}",
+            "white-list=": "white-list={{truefalse .Settings.whitelist}}"
+          }
+        }
+      ],
+      "run": {
+        "darwin": {
+          "command": "server.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xms{{.Settings.memory_mb}}M",
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "nogui"
+          ]
+        },
+        "linux": {
+          "command": "server.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xms{{.Settings.memory_mb}}M",
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "nogui"
+          ]
+        },
+        "windows": {
+          "command": "server.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xms{{.Settings.memory_mb}}M",
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "nogui"
+          ]
+        }
+      },
+      "stop": {
+        "command": "stop",
+        "timeout_seconds": 90
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "save": "save-all flush",
+        "rcon": {
+          "protocol": "source",
+          "port": "rcon",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "world",
+          "world_nether",
+          "world_the_end",
+          "plugins",
+          "config",
+          "server.properties",
+          "bukkit.yml",
+          "spigot.yml",
+          "ops.json",
+          "whitelist.json",
+          "banned-players.json",
+          "banned-ips.json"
+        ]
+      },
+      "container": {
+        "image": "eclipse-temurin:25-jre"
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "pmcserver"
+      },
+      "notes": [
+        "Needs Java 25 or newer (on Debian or Ubuntu, `sudo apt install openjdk-25-jre-headless` where available, or Eclipse Temurin).",
+        "Installing asks you to agree to Mojang's EULA (or pass `--set accept_eula=true`).",
+        "Make yourself an operator from the console with `op \u003cyour name\u003e`.",
+        "Put plugin .jar files in the plugins folder inside the server folder, then restart."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "minecraft",
+      "name": "Minecraft (Java Edition)",
+      "description": "Mojang's official vanilla Minecraft Java Edition server.",
+      "homepage": "https://www.minecraft.net/en-us/download/server",
+      "version": "26.3-1",
+      "platforms": [
+        "linux",
+        "windows",
+        "darwin"
+      ],
+      "install": {
+        "downloads": [
+          {
+            "url": "https://piston-data.mojang.com/v1/objects/33680f5f2ac32864d6d7cf5e56a705fdb3e05f4c/server.jar",
+            "sha256": "d052f14d7a173734fba553711e5b570162e2f2a313267ee31a21b975a679be64",
+            "to": "server.jar",
+            "always": true
+          }
+        ]
+      },
+      "settings": [
+        {
+          "key": "accept_eula",
+          "prompt": "Do you agree to the Minecraft EULA (https://aka.ms/MinecraftEULA)?",
+          "description": "Mojang requires this before the server runs.",
+          "type": "bool",
+          "must_accept": true
+        },
+        {
+          "key": "motd",
+          "prompt": "Server description shown in the server list",
+          "type": "string",
+          "default": "An Anyserve Minecraft server"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 20,
+          "min": 1,
+          "max": 1000
+        },
+        {
+          "key": "gamemode",
+          "prompt": "Game mode",
+          "type": "choice",
+          "default": "survival",
+          "choices": [
+            {
+              "value": "survival",
+              "label": "Survival"
+            },
+            {
+              "value": "creative",
+              "label": "Creative"
+            },
+            {
+              "value": "adventure",
+              "label": "Adventure"
+            },
+            {
+              "value": "spectator",
+              "label": "Spectator"
+            }
+          ]
+        },
+        {
+          "key": "difficulty",
+          "prompt": "Difficulty",
+          "type": "choice",
+          "default": "normal",
+          "choices": [
+            {
+              "value": "peaceful",
+              "label": "Peaceful"
+            },
+            {
+              "value": "easy",
+              "label": "Easy"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "hard",
+              "label": "Hard"
+            }
+          ]
+        },
+        {
+          "key": "pvp",
+          "prompt": "Allow players to fight each other?",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "online_mode",
+          "prompt": "Check players' Minecraft accounts (online mode)?",
+          "description": "Leave on unless you know why not. Off lets anyone join under any name.",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "whitelist",
+          "prompt": "Only let whitelisted players join?",
+          "description": "Add players from the console with `whitelist add \u003cname\u003e`.",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "seed",
+          "prompt": "World seed (leave empty for random; used when the world is created)",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "view_distance",
+          "prompt": "View distance in chunks",
+          "type": "int",
+          "default": 10,
+          "min": 3,
+          "max": 32
+        },
+        {
+          "key": "memory_mb",
+          "prompt": "Memory for the server in MB",
+          "type": "int",
+          "default": 2048,
+          "min": 512,
+          "max": 65536
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 25565,
+          "protocol": "tcp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "rcon",
+          "port": 25575,
+          "protocol": "tcp",
+          "description": "Remote console for `anyserve console`.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "eula.txt",
+          "template": "# Written by Anyserve from the accept_eula setting.\neula={{truefalse .Settings.accept_eula}}\n",
+          "overwrite": true
+        },
+        {
+          "path": "server.properties",
+          "template": "# Created by Anyserve. Minecraft adds its other settings on first start.\n",
+          "format": "lines",
+          "set": {
+            "difficulty=": "difficulty={{.Settings.difficulty}}",
+            "enable-rcon=": "enable-rcon=true",
+            "enforce-whitelist=": "enforce-whitelist={{truefalse .Settings.whitelist}}",
+            "gamemode=": "gamemode={{.Settings.gamemode}}",
+            "level-seed=": "level-seed={{.Settings.seed}}",
+            "max-players=": "max-players={{.Settings.max_players}}",
+            "motd=": "motd={{.Settings.motd}}",
+            "online-mode=": "online-mode={{truefalse .Settings.online_mode}}",
+            "pvp=": "pvp={{truefalse .Settings.pvp}}",
+            "rcon.password=": "rcon.password={{.Settings.rcon_password}}",
+            "rcon.port=": "rcon.port={{.Ports.rcon}}",
+            "server-port=": "server-port={{.Ports.game}}",
+            "view-distance=": "view-distance={{.Settings.view_distance}}",
+            "white-list=": "white-list={{truefalse .Settings.whitelist}}"
+          }
+        }
+      ],
+      "run": {
+        "darwin": {
+          "command": "server.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xms{{.Settings.memory_mb}}M",
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "nogui"
+          ]
+        },
+        "linux": {
+          "command": "server.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xms{{.Settings.memory_mb}}M",
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "nogui"
+          ]
+        },
+        "windows": {
+          "command": "server.jar",
+          "via": [
+            "java"
+          ],
+          "via_args": [
+            "-Xms{{.Settings.memory_mb}}M",
+            "-Xmx{{.Settings.memory_mb}}M",
+            "-jar"
+          ],
+          "args": [
+            "nogui"
+          ]
+        }
+      },
+      "stop": {
+        "command": "stop",
+        "timeout_seconds": 90
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "save": "save-all flush",
+        "rcon": {
+          "protocol": "source",
+          "port": "rcon",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "world",
+          "server.properties",
+          "ops.json",
+          "whitelist.json",
+          "banned-players.json",
+          "banned-ips.json"
+        ]
+      },
+      "container": {
+        "image": "eclipse-temurin:25-jre"
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "mcserver"
+      },
+      "notes": [
+        "Needs Java 25 or newer (on Debian or Ubuntu, `sudo apt install openjdk-25-jre-headless` where available, or Eclipse Temurin).",
+        "Installing asks you to agree to Mojang's EULA (or pass `--set accept_eula=true`).",
+        "Make yourself an operator from the console with `op \u003cyour name\u003e`."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "miniflux",
+      "name": "Miniflux",
+      "description": "A minimalist, fast feed reader for RSS, Atom and JSON Feed, with a clean web UI and API.",
+      "homepage": "https://miniflux.app",
+      "version": "2.3.5-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "base_url",
+          "prompt": "Address people will use (e.g. https://rss.example.com)",
+          "type": "string",
+          "default": "http://localhost:8085"
+        },
+        {
+          "key": "admin_user",
+          "prompt": "Admin user name (created on first start)",
+          "type": "string",
+          "default": "admin"
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password, at least 6 characters (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "postgres_password",
+          "prompt": "Database password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8085,
+          "protocol": "tcp",
+          "description": "The web UI and API.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {
+        "exec": {
+          "service": "postgres",
+          "command": [
+            "psql",
+            "-U",
+            "miniflux",
+            "-d",
+            "miniflux"
+          ],
+          "description": "the PostgreSQL shell for Miniflux's database"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "postgres",
+            "image": "postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73",
+            "env": {
+              "POSTGRES_DB": "miniflux",
+              "POSTGRES_PASSWORD": "{{.Settings.postgres_password}}",
+              "POSTGRES_USER": "miniflux"
+            },
+            "volumes": [
+              {
+                "path": "data/postgres",
+                "target": "/var/lib/postgresql/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "pg_isready",
+                "-U",
+                "miniflux",
+                "-d",
+                "miniflux"
+              ],
+              "interval_seconds": 5,
+              "retries": 20
+            }
+          },
+          {
+            "name": "miniflux",
+            "image": "miniflux/miniflux:2.3.5@sha256:8fd6c3c434ecc3d4083306f83e03c0bb74c632e0f8378da5ead7e1773b0b89c9",
+            "env": {
+              "ADMIN_PASSWORD": "{{.Settings.admin_password}}",
+              "ADMIN_USERNAME": "{{.Settings.admin_user}}",
+              "BASE_URL": "{{.Settings.base_url}}",
+              "CREATE_ADMIN": "1",
+              "DATABASE_URL": "postgres://miniflux:{{.Settings.postgres_password}}@postgres/miniflux?sslmode=disable",
+              "RUN_MIGRATIONS": "1"
+            },
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              }
+            ],
+            "depends_on": [
+              "postgres"
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "To reach it from other computers on your network, add `--expose http`."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "mumble",
+      "name": "Mumble",
+      "description": "A low-latency, high-quality voice chat server, popular with gaming groups.",
+      "homepage": "https://www.mumble.info",
+      "version": "1.5.939-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "superuser_password",
+          "prompt": "SuperUser password, for server admin (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "server_password",
+          "prompt": "Password to join (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "welcome_text",
+          "prompt": "Welcome message",
+          "type": "string",
+          "default": "Welcome to an Anyserve Mumble server!"
+        },
+        {
+          "key": "max_users",
+          "prompt": "Maximum users",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 1000
+        }
+      ],
+      "ports": [
+        {
+          "name": "voice",
+          "port": 64738,
+          "protocol": "both",
+          "description": "Mumble clients connect here.",
+          "public": true
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "mumble",
+            "image": "mumblevoip/mumble-server:v1.5.939@sha256:2373aaf071dfcea95b0d45bc2ddf6c10318674a313a7e4816e826e9ba4bca942",
+            "env": {
+              "MUMBLE_CONFIG_SERVERPASSWORD": "{{.Settings.server_password}}",
+              "MUMBLE_CONFIG_USERS": "{{.Settings.max_users}}",
+              "MUMBLE_CONFIG_WELCOMETEXT": "{{.Settings.welcome_text}}",
+              "MUMBLE_SUPERUSER_PASSWORD": "{{.Settings.superuser_password}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "voice",
+                "target": 64738
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "mumbleserver",
+        "notes": "LinuxGSM's mumbleserver installs the native server rather than a container."
+      },
+      "notes": [
+        "Log in as SuperUser with the generated password (`anyserve config \u003cname\u003e --show-secrets`) to set up channels and admins."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "n8n",
+      "name": "n8n",
+      "description": "A workflow automation tool. Connect apps and APIs with a visual editor, like a self-hosted Zapier.",
+      "homepage": "https://n8n.io",
+      "version": "2.48.7-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "url",
+          "prompt": "Address people and webhooks will use (e.g. https://n8n.example.com/)",
+          "description": "Webhook URLs shown in the editor start with this.",
+          "type": "string",
+          "default": "http://localhost:5678/"
+        },
+        {
+          "key": "encryption_key",
+          "prompt": "Key that encrypts saved credentials (leave empty to generate one)",
+          "description": "Keep it safe. Credentials can't be read without it.",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "timezone",
+          "prompt": "Time zone for schedules (e.g. Europe/London)",
+          "type": "string",
+          "default": "UTC"
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 5678,
+          "protocol": "tcp",
+          "description": "The editor, API and webhooks.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "n8n",
+            "image": "n8nio/n8n:2.48.7@sha256:fabce3e9678a07d2dde83bd8f5124017f3ec457d0a3fc6b63bb4cec465d63861",
+            "env": {
+              "GENERIC_TIMEZONE": "{{.Settings.timezone}}",
+              "N8N_DIAGNOSTICS_ENABLED": "false",
+              "N8N_EDITOR_BASE_URL": "{{.Settings.url}}",
+              "N8N_ENCRYPTION_KEY": "{{.Settings.encryption_key}}",
+              "N8N_RUNNERS_ENABLED": "true",
+              "N8N_SECURE_COOKIE": "{{if hasPrefix .Settings.url \"https://\"}}true{{else}}false{{end}}",
+              "N8N_USER_FOLDER": "/data",
+              "TZ": "{{.Settings.timezone}}",
+              "WEBHOOK_URL": "{{.Settings.url}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 5678
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Create the owner account on your first visit.",
+        "For webhooks from the internet, put an HTTPS proxy in front of it and set url to that address."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "navidrome",
+      "name": "Navidrome",
+      "description": "A music server and streamer for your own collection, compatible with Subsonic apps.",
+      "homepage": "https://www.navidrome.org",
+      "version": "0.64.2-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "music_folder",
+          "prompt": "Your music folder on this machine (e.g. ~/Music)",
+          "description": "Shared read-only. Navidrome never changes your files.",
+          "type": "folder",
+          "default": "~/Music"
+        },
+        {
+          "key": "scan_schedule",
+          "prompt": "How often to look for new music",
+          "type": "choice",
+          "default": "1h",
+          "choices": [
+            {
+              "value": "15m",
+              "label": "Every 15 minutes"
+            },
+            {
+              "value": "1h",
+              "label": "Every hour"
+            },
+            {
+              "value": "24h",
+              "label": "Once a day"
+            },
+            {
+              "value": "0",
+              "label": "Never (scan from the UI)"
+            }
+          ]
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 4533,
+          "protocol": "tcp",
+          "description": "The web player and the Subsonic API for apps.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "navidrome",
+            "image": "deluan/navidrome:0.64.2@sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52",
+            "env": {
+              "ND_LOGLEVEL": "info",
+              "ND_SCANSCHEDULE": "{{.Settings.scan_schedule}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/data"
+              },
+              {
+                "setting": "music_folder",
+                "target": "/music",
+                "read_only": true
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 4533
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The first account you create becomes the admin.",
+        "Backups cover Navidrome's database (playlists, ratings, play counts), not your music folder.",
+        "Phones and other computers need `--expose http` on your LAN, or an HTTPS proxy."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "necesse",
+      "name": "Necesse",
+      "description": "Fair Games' top-down sandbox adventure about building settlements, as a dedicated server.",
+      "homepage": "https://necessegame.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 1169370
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "StartServer-nogui.sh",
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "type": "chmod_exec",
+          "path": "jre/bin/java",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "world_name",
+          "prompt": "World name (created if it doesn't exist)",
+          "type": "string",
+          "default": "Anyserve"
+        },
+        {
+          "key": "slots",
+          "prompt": "Player slots",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 250
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "motd",
+          "prompt": "Message of the day",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "pause_when_empty",
+          "prompt": "Pause the world when nobody is online?",
+          "type": "bool",
+          "default": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 14159,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "StartServer-nogui.sh",
+          "args": [
+            "-localdir",
+            "-world",
+            "{{.Settings.world_name}}",
+            "-port",
+            "{{.Ports.game}}",
+            "-slots",
+            "{{.Settings.slots}}",
+            "-pausewhenempty",
+            "{{onezero .Settings.pause_when_empty}}",
+            "{{if .Settings.password}}-password{{end}}",
+            "{{.Settings.password}}",
+            "{{if .Settings.motd}}-motd{{end}}",
+            "{{.Settings.motd}}"
+          ]
+        },
+        "windows": {
+          "command": "StartServer-nogui.bat",
+          "args": [
+            "-localdir",
+            "-world",
+            "{{.Settings.world_name}}",
+            "-port",
+            "{{.Ports.game}}",
+            "-slots",
+            "{{.Settings.slots}}",
+            "-pausewhenempty",
+            "{{onezero .Settings.pause_when_empty}}",
+            "{{if .Settings.password}}-password{{end}}",
+            "{{.Settings.password}}",
+            "{{if .Settings.motd}}-motd{{end}}",
+            "{{.Settings.motd}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "stop",
+        "timeout_seconds": 60
+      },
+      "console": {
+        "say": "say {{.Message}}",
+        "save": "save"
+      },
+      "backup": {
+        "paths": [
+          "saves",
+          "cfg"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "necserver"
+      },
+      "notes": [
+        "Necesse brings its own Java runtime.",
+        "Saves and settings stay in the server folder (saves and cfg)."
       ]
     },
     {
@@ -1275,6 +4977,486 @@
       "notes": [
         "Windows only; Anyserve doesn't run Windows servers under Wine.",
         "The server writes Engine.ini and Game.ini on first start; Anyserve applies your settings from the second start on."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "ntfy",
+      "name": "ntfy",
+      "description": "A simple push notification server. Send alerts to your phone or desktop with a plain HTTP request.",
+      "homepage": "https://ntfy.sh",
+      "version": "2.38.1-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "base_url",
+          "prompt": "Address people and apps will use (e.g. https://ntfy.example.com)",
+          "description": "Used for attachment links and the web app. Leave the default for testing on this machine.",
+          "type": "string",
+          "default": "http://localhost:2586"
+        },
+        {
+          "key": "default_access",
+          "prompt": "Access for people without an account",
+          "type": "choice",
+          "default": "read-write",
+          "choices": [
+            {
+              "value": "read-write",
+              "label": "Anyone can publish and subscribe"
+            },
+            {
+              "value": "read-only",
+              "label": "Anyone can subscribe, only users can publish"
+            },
+            {
+              "value": "deny-all",
+              "label": "Only users (add them from the console)"
+            }
+          ]
+        },
+        {
+          "key": "behind_proxy",
+          "prompt": "Will it sit behind a reverse proxy?",
+          "description": "Makes rate limits use the visitor's real address from X-Forwarded-For.",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 2586,
+          "protocol": "tcp",
+          "description": "The web app, publishing and subscriptions.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {
+        "exec": {
+          "service": "ntfy",
+          "command": [
+            "sh"
+          ],
+          "description": "a shell in the ntfy container, for `ntfy user add` and `ntfy access`"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "ntfy",
+            "image": "binwiederhier/ntfy:v2.38.1@sha256:038da2be5e668fee6d36a62884eea48975e1b71c29a56964e5298c1b9165a573",
+            "command": [
+              "serve"
+            ],
+            "env": {
+              "NTFY_ATTACHMENT_CACHE_DIR": "/var/lib/ntfy/attachments",
+              "NTFY_AUTH_DEFAULT_ACCESS": "{{.Settings.default_access}}",
+              "NTFY_AUTH_FILE": "/var/lib/ntfy/user.db",
+              "NTFY_BASE_URL": "{{.Settings.base_url}}",
+              "NTFY_BEHIND_PROXY": "{{truefalse .Settings.behind_proxy}}",
+              "NTFY_CACHE_FILE": "/var/lib/ntfy/cache.db",
+              "NTFY_ENABLE_LOGIN": "true",
+              "NTFY_LISTEN_HTTP": ":8080"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/var/lib/ntfy"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              }
+            ],
+            "health": {
+              "command": [
+                "ntfy",
+                "health",
+                "--url",
+                "http://127.0.0.1:8080"
+              ],
+              "interval_seconds": 30,
+              "retries": 3
+            }
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Send a test message: curl -d 'Hello' http://localhost:2586/test, then subscribe to the topic test in the app.",
+        "Add users from the console: anyserve console \u003cname\u003e, then ntfy user add --role=admin yourname.",
+        "Phones need to reach the server, so add `--expose http` for your LAN or put an HTTPS proxy in front of it."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "palworld",
+      "name": "Palworld",
+      "description": "Pocketpair's creature-collecting survival game, as an official dedicated server.",
+      "homepage": "https://www.pocketpair.jp/palworld",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 2394010
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "PalServer.sh",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Palworld"
+        },
+        {
+          "key": "description",
+          "prompt": "Server description",
+          "type": "string",
+          "default": "Hosted with Anyserve"
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin and RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 32,
+          "min": 1,
+          "max": 32
+        },
+        {
+          "key": "community",
+          "prompt": "List the server in the community server browser?",
+          "type": "bool",
+          "default": false
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 8211,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "rcon",
+          "port": 25575,
+          "protocol": "tcp",
+          "description": "Remote console for `anyserve console`.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "Pal/Saved/Config/LinuxServer/PalWorldSettings.ini",
+          "template": "[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName={{json .Settings.server_name}},ServerDescription={{json .Settings.description}},AdminPassword={{json .Settings.admin_password}},ServerPassword={{json .Settings.password}},PublicPort={{.Ports.game}},ServerPlayerMaxNum={{.Settings.max_players}},RCONEnabled=True,RCONPort={{.Ports.rcon}},RESTAPIEnabled=False)\n",
+          "overwrite": true,
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "path": "Pal/Saved/Config/WindowsServer/PalWorldSettings.ini",
+          "template": "[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName={{json .Settings.server_name}},ServerDescription={{json .Settings.description}},AdminPassword={{json .Settings.admin_password}},ServerPassword={{json .Settings.password}},PublicPort={{.Ports.game}},ServerPlayerMaxNum={{.Settings.max_players}},RCONEnabled=True,RCONPort={{.Ports.rcon}},RESTAPIEnabled=False)\n",
+          "overwrite": true,
+          "os": [
+            "windows"
+          ]
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "PalServer.sh",
+          "args": [
+            "-port={{.Ports.game}}",
+            "-players={{.Settings.max_players}}",
+            "-useperfthreads",
+            "-NoAsyncLoadingThread",
+            "-UseMultithreadForDS",
+            "{{if .Settings.community}}-publiclobby{{end}}"
+          ]
+        },
+        "windows": {
+          "command": "PalServer.exe",
+          "args": [
+            "-port={{.Ports.game}}",
+            "-players={{.Settings.max_players}}",
+            "-useperfthreads",
+            "-NoAsyncLoadingThread",
+            "-UseMultithreadForDS",
+            "{{if .Settings.community}}-publiclobby{{end}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "Shutdown 1",
+        "timeout_seconds": 90,
+        "rcon": true
+      },
+      "console": {
+        "say": "Broadcast {{.Message}}",
+        "save": "Save",
+        "rcon": {
+          "protocol": "source",
+          "port": "rcon",
+          "password": "{{.Settings.admin_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "Pal/Saved"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "pwserver"
+      },
+      "notes": [
+        "Anyserve writes PalWorldSettings.ini from its settings, so edits to that file are replaced. Other world options keep Palworld's defaults.",
+        "Broadcast messages can only be one word in Palworld's RCON; use underscores between words."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "paperless-ngx",
+      "name": "Paperless-ngx",
+      "description": "A document manager that scans, OCRs and indexes your paper documents so you can search them.",
+      "homepage": "https://docs.paperless-ngx.com",
+      "version": "3.5.1-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "url",
+          "prompt": "Address people will use (e.g. https://paperless.example.com)",
+          "type": "string",
+          "default": "http://localhost:8000"
+        },
+        {
+          "key": "admin_user",
+          "prompt": "Admin user name (created on first start)",
+          "type": "string",
+          "default": "admin"
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Admin password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "ocr_language",
+          "prompt": "OCR language of your documents, as Tesseract codes (e.g. eng, deu, eng+fra)",
+          "type": "string",
+          "default": "eng"
+        },
+        {
+          "key": "consume_folder",
+          "prompt": "Folder on this machine to watch for new documents (leave empty to use the instance's own consume folder)",
+          "description": "Shared read-write. Paperless imports files dropped here and then deletes them.",
+          "type": "folder",
+          "optional": true
+        },
+        {
+          "key": "secret_key",
+          "prompt": "Secret key (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "postgres_password",
+          "prompt": "Database password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8000,
+          "protocol": "tcp",
+          "description": "The web UI and API.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {
+        "exec": {
+          "service": "paperless",
+          "command": [
+            "sh"
+          ],
+          "description": "a shell in the Paperless container, for its document_* management commands"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data",
+          "media"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "redis",
+            "image": "valkey/valkey:8-alpine@sha256:9971099af41c36e887aabdfe22b80c0fe45df949163dfc9cb434febc57cfc3fc",
+            "volumes": [
+              {
+                "path": "data/redis",
+                "target": "/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "valkey-cli",
+                "ping"
+              ],
+              "interval_seconds": 5,
+              "retries": 20
+            }
+          },
+          {
+            "name": "postgres",
+            "image": "postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73",
+            "env": {
+              "POSTGRES_DB": "paperless",
+              "POSTGRES_PASSWORD": "{{.Settings.postgres_password}}",
+              "POSTGRES_USER": "paperless"
+            },
+            "volumes": [
+              {
+                "path": "data/postgres",
+                "target": "/var/lib/postgresql/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "pg_isready",
+                "-U",
+                "paperless",
+                "-d",
+                "paperless"
+              ],
+              "interval_seconds": 5,
+              "retries": 20
+            }
+          },
+          {
+            "name": "paperless",
+            "image": "ghcr.io/paperless-ngx/paperless-ngx:3.5.1@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9",
+            "env": {
+              "PAPERLESS_ADMIN_PASSWORD": "{{.Settings.admin_password}}",
+              "PAPERLESS_ADMIN_USER": "{{.Settings.admin_user}}",
+              "PAPERLESS_CONSUMPTION_DIR": "{{if .Settings.consume_folder}}/usr/src/paperless/consume{{else}}/usr/src/paperless/inbox{{end}}",
+              "PAPERLESS_DBHOST": "postgres",
+              "PAPERLESS_DBNAME": "paperless",
+              "PAPERLESS_DBPASS": "{{.Settings.postgres_password}}",
+              "PAPERLESS_DBUSER": "paperless",
+              "PAPERLESS_OCR_LANGUAGE": "{{.Settings.ocr_language}}",
+              "PAPERLESS_REDIS": "redis://redis:6379",
+              "PAPERLESS_SECRET_KEY": "{{.Settings.secret_key}}",
+              "PAPERLESS_URL": "{{.Settings.url}}"
+            },
+            "volumes": [
+              {
+                "path": "data/paperless",
+                "target": "/usr/src/paperless/data"
+              },
+              {
+                "path": "media",
+                "target": "/usr/src/paperless/media"
+              },
+              {
+                "path": "export",
+                "target": "/usr/src/paperless/export"
+              },
+              {
+                "path": "consume",
+                "target": "/usr/src/paperless/inbox"
+              },
+              {
+                "setting": "consume_folder",
+                "target": "/usr/src/paperless/consume"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8000
+              }
+            ],
+            "depends_on": [
+              "redis",
+              "postgres"
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "The first start takes a few minutes while Paperless sets up its database.",
+        "Paperless only answers on the address in url (by default http://localhost:8000). If you use `--expose http` for your LAN, set url to the address you'll browse to, such as http://192.168.1.10:8000.",
+        "Backups cover the database and your stored documents (media). Use Paperless's own exporter for a portable copy."
       ]
     },
     {
@@ -1446,6 +5628,170 @@
       },
       "notes": [
         "Saves live under .config/unity3d in the server folder, because Anyserve gives each server its own home."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "project-zomboid",
+      "name": "Project Zomboid",
+      "description": "The Indie Stone's zombie survival sandbox, as an official dedicated server.",
+      "homepage": "https://projectzomboid.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 380870
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "start-server.sh",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "public_name",
+          "prompt": "Server name shown in the server browser",
+          "type": "string",
+          "default": "Anyserve Zomboid"
+        },
+        {
+          "key": "public",
+          "prompt": "List the server in the public server browser?",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Password for the built-in admin account (leave empty to generate one)",
+          "description": "Used when the server first starts. Log in as admin with it.",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 16,
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "rcon_password",
+          "prompt": "RCON password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 16261,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "direct",
+          "port": 16262,
+          "protocol": "udp",
+          "description": "Direct connections between players and the server.",
+          "public": true
+        },
+        {
+          "name": "rcon",
+          "port": 27015,
+          "protocol": "tcp",
+          "description": "Remote console for `anyserve console`.",
+          "public": false
+        }
+      ],
+      "files": [
+        {
+          "path": "Zomboid/Server/anyserve.ini",
+          "format": "lines",
+          "set": {
+            "DefaultPort=": "DefaultPort={{.Ports.game}}",
+            "MaxPlayers=": "MaxPlayers={{.Settings.max_players}}",
+            "Password=": "Password={{.Settings.password}}",
+            "Public=": "Public={{truefalse .Settings.public}}",
+            "PublicName=": "PublicName={{.Settings.public_name}}",
+            "RCONPassword=": "RCONPassword={{.Settings.rcon_password}}",
+            "RCONPort=": "RCONPort={{.Ports.rcon}}",
+            "UDPPort=": "UDPPort={{.Ports.direct}}"
+          }
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "start-server.sh",
+          "args": [
+            "-servername",
+            "anyserve",
+            "-adminpassword",
+            "{{.Settings.admin_password}}"
+          ]
+        },
+        "windows": {
+          "command": "StartServer64.bat",
+          "args": [
+            "-servername",
+            "anyserve",
+            "-adminpassword",
+            "{{.Settings.admin_password}}"
+          ]
+        }
+      },
+      "stop": {
+        "command": "quit",
+        "timeout_seconds": 120
+      },
+      "console": {
+        "say": "servermsg \"{{.Message}}\"",
+        "save": "save",
+        "rcon": {
+          "protocol": "source",
+          "port": "rcon",
+          "password": "{{.Settings.rcon_password}}"
+        }
+      },
+      "backup": {
+        "paths": [
+          "Zomboid/Saves",
+          "Zomboid/Server",
+          "Zomboid/db"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "pzserver"
+      },
+      "notes": [
+        "The server's files are in Zomboid/Server/anyserve.ini (settings) and anyserve_SandboxVars.lua (world rules) inside the server folder. Anyserve only changes the keys it manages.",
+        "The first start creates the world and can take a few minutes. Settings apply from the second start, once Zomboid has written its config.",
+        "Zomboid uses up to 8 GB of memory by default. Change -Xmx in ProjectZomboid64.json to lower it."
       ]
     },
     {
@@ -1816,6 +6162,92 @@
     },
     {
       "schema": 1,
+      "id": "satisfactory",
+      "name": "Satisfactory",
+      "description": "Coffee Stain's factory-building game, as an official dedicated server.",
+      "homepage": "https://www.satisfactorygame.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 1690800
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "FactoryServer.sh",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 7777,
+          "protocol": "both",
+          "description": "Players connect here (game traffic and the server API).",
+          "public": true
+        },
+        {
+          "name": "reliable",
+          "port": 8888,
+          "protocol": "tcp",
+          "description": "Reliable messaging between players and the server.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "FactoryServer.sh",
+          "args": [
+            "-Port={{.Ports.game}}",
+            "-ReliablePort={{.Ports.reliable}}",
+            "-log",
+            "-unattended"
+          ]
+        },
+        "windows": {
+          "command": "FactoryServer.exe",
+          "args": [
+            "-Port={{.Ports.game}}",
+            "-ReliablePort={{.Ports.reliable}}",
+            "-log",
+            "-unattended"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 120
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          ".config/Epic/FactoryGame/Saved"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "sfserver"
+      },
+      "notes": [
+        "Claim the server in the game: Server Manager, Add Server, then this machine's address and the game port. The first player sets the admin password and creates or uploads a save.",
+        "Needs about 8 GB of memory once a factory grows.",
+        "Saves live in .config/Epic/FactoryGame/Saved inside the server folder, and backups include them."
+      ]
+    },
+    {
+      "schema": 1,
       "id": "stationeers",
       "name": "Stationeers",
       "description": "RocketWerkz's Stationeers dedicated server, installed through SteamCMD.",
@@ -2018,6 +6450,91 @@
     },
     {
       "schema": 1,
+      "id": "syncthing",
+      "name": "Syncthing",
+      "description": "Continuous peer-to-peer file sync between your computers and phones, with no cloud in between.",
+      "homepage": "https://syncthing.net",
+      "version": "2.1.7-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "sync_folder",
+          "prompt": "Folder to sync on this machine (e.g. ~/Sync)",
+          "description": "Shared read-write at /sync. Add folders under /sync in the web UI.",
+          "type": "folder",
+          "default": "~/Sync"
+        }
+      ],
+      "ports": [
+        {
+          "name": "gui",
+          "port": 8384,
+          "protocol": "tcp",
+          "description": "The web UI. Set a GUI password before exposing it.",
+          "public": false
+        },
+        {
+          "name": "sync",
+          "port": 22000,
+          "protocol": "both",
+          "description": "Other devices connect here (TCP and QUIC).",
+          "public": true
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "syncthing",
+            "image": "syncthing/syncthing:2.1.7@sha256:2b71da7c0d0a91a6ae5285ad079226fecc0a365d08b27720e1f7037b018f7546",
+            "env": {
+              "STGUIADDRESS": "0.0.0.0:8384"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/var/syncthing"
+              },
+              {
+                "setting": "sync_folder",
+                "target": "/sync"
+              }
+            ],
+            "ports": [
+              {
+                "port": "gui",
+                "target": 8384
+              },
+              {
+                "port": "sync",
+                "target": 22000
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Open the web UI and set a GUI user and password first (Actions, Settings, GUI).",
+        "Share folders under /sync, which is the folder you chose on this machine.",
+        "Devices find each other through Syncthing's global discovery and relays. Local discovery on the LAN isn't available inside a container, so add devices by ID.",
+        "Backups cover Syncthing's keys and settings, not the synced files."
+      ]
+    },
+    {
+      "schema": 1,
       "id": "terraria",
       "name": "Terraria",
       "description": "Re-Logic's official vanilla Terraria dedicated server.",
@@ -2206,6 +6723,636 @@
       "notes": [
         "Vanilla server only. A TShock variant is planned.",
         "The world is created on first start, which can take a minute."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "umami",
+      "name": "Umami",
+      "description": "Simple, privacy-friendly website analytics without cookies, as an alternative to Google Analytics.",
+      "homepage": "https://umami.is",
+      "version": "3.5.0-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "app_secret",
+          "prompt": "App secret (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "postgres_password",
+          "prompt": "Database password (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 3004,
+          "protocol": "tcp",
+          "description": "The dashboard and the tracking script. Websites must reach it, so put an HTTPS proxy in front of it.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {
+        "exec": {
+          "service": "postgres",
+          "command": [
+            "psql",
+            "-U",
+            "umami",
+            "-d",
+            "umami"
+          ],
+          "description": "the PostgreSQL shell for Umami's database"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "postgres",
+            "image": "postgres:17-alpine@sha256:f9cf3e1f0066f0eb0c48707d864f0ac5941e9ff454a072077d97a4d278d07d73",
+            "env": {
+              "POSTGRES_DB": "umami",
+              "POSTGRES_PASSWORD": "{{.Settings.postgres_password}}",
+              "POSTGRES_USER": "umami"
+            },
+            "volumes": [
+              {
+                "path": "data/postgres",
+                "target": "/var/lib/postgresql/data"
+              }
+            ],
+            "health": {
+              "command": [
+                "pg_isready",
+                "-U",
+                "umami",
+                "-d",
+                "umami"
+              ],
+              "interval_seconds": 5,
+              "retries": 20
+            }
+          },
+          {
+            "name": "umami",
+            "image": "ghcr.io/umami-software/umami:3.5.0@sha256:b64f40400d77bcadd39cf5c62a1e368c99524ca442024f96e1133355a19a5dbc",
+            "env": {
+              "APP_SECRET": "{{.Settings.app_secret}}",
+              "DATABASE_URL": "postgresql://umami:{{.Settings.postgres_password}}@postgres:5432/umami",
+              "DISABLE_TELEMETRY": "1"
+            },
+            "ports": [
+              {
+                "port": "http",
+                "target": 3000
+              }
+            ],
+            "depends_on": [
+              "postgres"
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Log in with user admin and password umami, then change the password straight away.",
+        "The sites you track must load its script, so serve it over HTTPS on a public address."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "unturned",
+      "name": "Unturned",
+      "description": "Smartly Dressed Games' free zombie survival game, as an official dedicated server.",
+      "homepage": "https://smartlydressedgames.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 1110390
+        }
+      },
+      "steps": [
+        {
+          "type": "steam_sdk"
+        },
+        {
+          "type": "chmod_exec",
+          "path": "Unturned_Headless.x86_64",
+          "os": [
+            "linux"
+          ]
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name",
+          "type": "string",
+          "default": "Anyserve Unturned"
+        },
+        {
+          "key": "map",
+          "prompt": "Map",
+          "type": "string",
+          "default": "PEI"
+        },
+        {
+          "key": "max_players",
+          "prompt": "Maximum players",
+          "type": "int",
+          "default": 24,
+          "min": 1,
+          "max": 200
+        },
+        {
+          "key": "password",
+          "prompt": "Server password (leave empty for none)",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        },
+        {
+          "key": "mode",
+          "prompt": "Difficulty",
+          "type": "choice",
+          "default": "Normal",
+          "choices": [
+            {
+              "value": "Easy",
+              "label": "Easy"
+            },
+            {
+              "value": "Normal",
+              "label": "Normal"
+            },
+            {
+              "value": "Hard",
+              "label": "Hard"
+            }
+          ]
+        },
+        {
+          "key": "pvp",
+          "prompt": "Allow players to fight each other?",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "owner",
+          "prompt": "Your SteamID64, to make you the server's admin (leave empty for none)",
+          "description": "The 17-digit number in your Steam profile address, e.g. 76561198000000000. The owner can run admin commands from in-game chat.",
+          "type": "string",
+          "optional": true
+        },
+        {
+          "key": "gslt",
+          "prompt": "Steam game server login token, for an internet server (leave empty for LAN only)",
+          "description": "Create one at https://steamcommunity.com/dev/managegameservers for app 304930.",
+          "type": "string",
+          "secret": true,
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 27015,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 27016,
+          "protocol": "udp",
+          "description": "Steam queries. Unturned always uses the game port plus one.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "Servers/anyserve/Server/Commands.dat",
+          "template": "Name {{.Settings.server_name}}\nMap {{.Settings.map}}\nPort {{.Ports.game}}\nMaxPlayers {{.Settings.max_players}}\nMode {{.Settings.mode}}\n{{if .Settings.pvp}}PvP{{else}}PvE{{end}}\n{{if .Settings.password}}Password {{.Settings.password}}\n{{end}}{{if .Settings.owner}}Owner {{.Settings.owner}}\n{{end}}{{if .Settings.gslt}}GSLT {{.Settings.gslt}}\n{{end}}\n",
+          "overwrite": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "Unturned_Headless.x86_64",
+          "args": [
+            "-batchmode",
+            "-nographics",
+            "{{if .Settings.gslt}}+InternetServer/anyserve{{else}}+LanServer/anyserve{{end}}"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/Unturned_Headless_Data/Plugins/x86_64:{{.Dir}}/linux64"
+          }
+        },
+        "windows": {
+          "command": "Unturned.exe",
+          "args": [
+            "-batchmode",
+            "-nographics",
+            "{{if .Settings.gslt}}+InternetServer/anyserve{{else}}+LanServer/anyserve{{end}}"
+          ]
+        }
+      },
+      "stop": {
+        "timeout_seconds": 60
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "Servers/anyserve"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "lib32gcc-s1"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "untserver"
+      },
+      "notes": [
+        "Without a login token the server is LAN only. Internet servers need a token (gslt).",
+        "The server's files are in Servers/anyserve inside the server folder. Anyserve rewrites Server/Commands.dat from its settings.",
+        "Unturned only accepts console commands typed in a real terminal, so \"anyserve console\", say and save don't work for it. Stopping the server saves the world. Admin commands work from in-game chat for the owner (the owner setting)."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "uptime-kuma",
+      "name": "Uptime Kuma",
+      "description": "A self-hosted monitoring tool that checks websites and services and alerts you when they go down.",
+      "homepage": "https://uptime.kuma.pet",
+      "version": "2.5.12-1",
+      "kind": "stack",
+      "install": {},
+      "ports": [
+        {
+          "name": "http",
+          "port": 3001,
+          "protocol": "tcp",
+          "description": "The dashboard and status pages.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "uptime-kuma",
+            "image": "louislam/uptime-kuma:2.5.12@sha256:8e4b6bef96417ec98a35dc103c99cc64fc229a01e584e56d95d9004d2003c02a",
+            "env": {
+              "UPTIME_KUMA_PORT": "3001"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/app/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 3001
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Open the dashboard and create the admin account on first visit. Pick SQLite when asked for a database.",
+        "To reach it from other computers on your network, add `--expose http`.",
+        "Monitors run from inside the container, so to check a service on this machine use its LAN address rather than localhost."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "valheim",
+      "name": "Valheim",
+      "description": "Iron Gate's Viking survival game, as an official dedicated server.",
+      "homepage": "https://www.valheimgame.com",
+      "version": "1",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "install": {
+        "steamcmd": {
+          "app_id": 896660
+        }
+      },
+      "steps": [
+        {
+          "type": "chmod_exec",
+          "path": "valheim_server.x86_64",
+          "os": [
+            "linux"
+          ]
+        },
+        {
+          "type": "mkdir",
+          "path": "saves"
+        }
+      ],
+      "settings": [
+        {
+          "key": "server_name",
+          "prompt": "Server name shown in the server list",
+          "type": "string",
+          "default": "Anyserve Valheim"
+        },
+        {
+          "key": "world_name",
+          "prompt": "World name (a new world is created if it doesn't exist)",
+          "type": "string",
+          "default": "Dedicated"
+        },
+        {
+          "key": "password",
+          "prompt": "Server password, at least 5 characters and not part of the server name (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "public",
+          "prompt": "List the server in the public server browser?",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "crossplay",
+          "prompt": "Allow Xbox and Game Pass players (crossplay)?",
+          "description": "Players then join with a join code instead of the address.",
+          "type": "bool",
+          "default": false
+        },
+        {
+          "key": "preset",
+          "prompt": "World difficulty preset",
+          "type": "choice",
+          "default": "normal",
+          "choices": [
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "casual",
+              "label": "Casual"
+            },
+            {
+              "value": "easy",
+              "label": "Easy"
+            },
+            {
+              "value": "hard",
+              "label": "Hard"
+            },
+            {
+              "value": "hardcore",
+              "label": "Hardcore"
+            },
+            {
+              "value": "immersive",
+              "label": "Immersive"
+            },
+            {
+              "value": "hammer",
+              "label": "Hammer (building)"
+            }
+          ]
+        }
+      ],
+      "ports": [
+        {
+          "name": "game",
+          "port": 2456,
+          "protocol": "udp",
+          "description": "Players connect here.",
+          "public": true
+        },
+        {
+          "name": "query",
+          "port": 2457,
+          "protocol": "udp",
+          "description": "Steam queries. Valheim always uses the game port plus one, so change both together.",
+          "public": true
+        }
+      ],
+      "run": {
+        "linux": {
+          "command": "valheim_server.x86_64",
+          "args": [
+            "-nographics",
+            "-batchmode",
+            "-name",
+            "{{.Settings.server_name}}",
+            "-port",
+            "{{.Ports.game}}",
+            "-world",
+            "{{.Settings.world_name}}",
+            "-password",
+            "{{.Settings.password}}",
+            "-public",
+            "{{onezero .Settings.public}}",
+            "-preset",
+            "{{.Settings.preset}}",
+            "-savedir",
+            "{{.Dir}}/saves",
+            "{{if .Settings.crossplay}}-crossplay{{end}}"
+          ],
+          "env": {
+            "LD_LIBRARY_PATH": "{{.Dir}}/linux64",
+            "SteamAppId": "892970"
+          }
+        },
+        "windows": {
+          "command": "valheim_server.exe",
+          "args": [
+            "-nographics",
+            "-batchmode",
+            "-name",
+            "{{.Settings.server_name}}",
+            "-port",
+            "{{.Ports.game}}",
+            "-world",
+            "{{.Settings.world_name}}",
+            "-password",
+            "{{.Settings.password}}",
+            "-public",
+            "{{onezero .Settings.public}}",
+            "-preset",
+            "{{.Settings.preset}}",
+            "-savedir",
+            "{{.Dir}}/saves",
+            "{{if .Settings.crossplay}}-crossplay{{end}}"
+          ],
+          "env": {
+            "SteamAppId": "892970"
+          }
+        }
+      },
+      "stop": {
+        "timeout_seconds": 90
+      },
+      "console": {},
+      "backup": {
+        "paths": [
+          "saves"
+        ]
+      },
+      "container": {
+        "image": "debian:bookworm-slim",
+        "packages": [
+          "ca-certificates",
+          "libatomic1",
+          "libpulse0"
+        ]
+      },
+      "linuxgsm": {
+        "status": "upstream",
+        "name": "vhserver"
+      },
+      "notes": [
+        "The world saves when the server stops and every 30 minutes while it runs.",
+        "Admins, bans and permitted players are lists of Steam IDs in saves/adminlist.txt, bannedlist.txt and permittedlist.txt."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "vaultwarden",
+      "name": "Vaultwarden",
+      "description": "A lightweight server for the Bitwarden password manager apps and browser extensions.",
+      "homepage": "https://github.com/dani-garcia/vaultwarden",
+      "version": "1.37.5-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "domain",
+          "prompt": "Full address people will use, with https:// (e.g. https://vault.example.com)",
+          "description": "Bitwarden apps and web vault links use this. Leave the default only for testing on this machine.",
+          "type": "string",
+          "default": "http://localhost:8222"
+        },
+        {
+          "key": "signups_allowed",
+          "prompt": "Let anyone with the address create an account?",
+          "description": "Turn this off after creating your own accounts, or invite people from the admin page instead.",
+          "type": "bool",
+          "default": true
+        },
+        {
+          "key": "admin_token",
+          "prompt": "Admin page token (leave empty to generate one)",
+          "description": "Opens /admin, where you can invite users and change server settings.",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8222,
+          "protocol": "tcp",
+          "description": "The web vault, API and admin page. Put an HTTPS proxy in front of it.",
+          "public": false
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {
+        "exec": {
+          "service": "vaultwarden",
+          "command": [
+            "sh"
+          ],
+          "description": "a shell in the Vaultwarden container"
+        }
+      },
+      "backup": {
+        "paths": [
+          "data"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "vaultwarden",
+            "image": "vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f",
+            "env": {
+              "ADMIN_TOKEN": "{{.Settings.admin_token}}",
+              "DATA_FOLDER": "/data",
+              "DOMAIN": "{{.Settings.domain}}",
+              "ROCKET_PORT": "8080",
+              "SIGNUPS_ALLOWED": "{{truefalse .Settings.signups_allowed}}"
+            },
+            "volumes": [
+              {
+                "path": "data",
+                "target": "/data"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              }
+            ]
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Bitwarden apps and browsers only unlock vaults over HTTPS (or on http://localhost). Put an HTTPS reverse proxy such as Caddy in front of it, and set domain to that address.",
+        "The admin page is at /admin. See the token with `anyserve config \u003cname\u003e --show-secrets`.",
+        "To reach it from other computers on your network, add `--expose http` (at install, or later with `anyserve config`)."
       ]
     },
     {
