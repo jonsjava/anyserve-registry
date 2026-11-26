@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "main",
-  "generated": "2026-11-23T03:06:56Z",
+  "generated": "2026-11-26T07:44:05Z",
   "services": [
     {
       "schema": 1,
@@ -4812,6 +4812,161 @@
       "notes": [
         "Necesse brings its own Java runtime.",
         "Saves and settings stay in the server folder (saves and cfg)."
+      ]
+    },
+    {
+      "schema": 1,
+      "id": "neko",
+      "name": "n.eko",
+      "description": "A shared Firefox in a container that friends use together from their own browsers, over WebRTC. Watch parties, browsing together, or a throwaway browser.",
+      "homepage": "https://neko.m1k1o.net",
+      "version": "3.2.0-1",
+      "kind": "stack",
+      "install": {},
+      "settings": [
+        {
+          "key": "user_password",
+          "prompt": "Password for viewers (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "admin_password",
+          "prompt": "Password for admins, who can kick users and lock the room (leave empty to generate one)",
+          "type": "string",
+          "secret": true,
+          "generate": true
+        },
+        {
+          "key": "screen",
+          "prompt": "Screen size and frame rate",
+          "type": "choice",
+          "default": "1280x720@30",
+          "choices": [
+            {
+              "value": "1280x720@30",
+              "label": "1280x720, 30 fps"
+            },
+            {
+              "value": "1600x900@30",
+              "label": "1600x900, 30 fps"
+            },
+            {
+              "value": "1920x1080@30",
+              "label": "1920x1080, 30 fps (needs more CPU and bandwidth)"
+            },
+            {
+              "value": "1280x720@60",
+              "label": "1280x720, 60 fps"
+            }
+          ]
+        },
+        {
+          "key": "public_address",
+          "prompt": "Address viewers reach this machine at, if not its public IP (e.g. a LAN IP); leave empty to look it up",
+          "type": "string",
+          "optional": true
+        }
+      ],
+      "ports": [
+        {
+          "name": "http",
+          "port": 8085,
+          "protocol": "tcp",
+          "description": "The web page viewers open.",
+          "public": false
+        },
+        {
+          "name": "webrtc",
+          "port": 52000,
+          "protocol": "both",
+          "description": "The video, sound and controls (WebRTC), UDP with TCP as a fallback. Viewers' browsers connect to it directly.",
+          "public": true
+        }
+      ],
+      "files": [
+        {
+          "path": "supervisord.conf",
+          "template": "; Written by Anyserve. Changes are overwritten.\n[supervisord]\nnodaemon=true\npidfile=/tmp/supervisord.pid\nlogfile=/dev/null\nlogfile_maxbytes=0\nloglevel=warn\n\n[program:x-server]\ncommand=/usr/bin/X %(ENV_DISPLAY)s -config /etc/neko/xorg.conf -noreset -nolisten tcp\nautorestart=true\npriority=300\nstdout_logfile=/dev/fd/1\nstdout_logfile_maxbytes=0\nredirect_stderr=true\n\n[program:pulseaudio]\ncommand=/usr/bin/pulseaudio --log-level=error --disallow-module-loading --disallow-exit --exit-idle-time=-1\nautorestart=true\npriority=300\nstdout_logfile=/dev/fd/1\nstdout_logfile_maxbytes=0\nredirect_stderr=true\n\n[program:openbox]\ncommand=/usr/bin/openbox --config-file /etc/neko/openbox.xml\nautorestart=true\nstartretries=10\npriority=400\nstdout_logfile=/dev/fd/1\nstdout_logfile_maxbytes=0\nredirect_stderr=true\n\n[program:firefox]\ncommand=/usr/bin/firefox --no-remote -P default --display=%(ENV_DISPLAY)s -setDefaultBrowser -width 1280 -height 720\nstopsignal=INT\nautorestart=true\npriority=800\nstdout_logfile=/dev/fd/1\nstdout_logfile_maxbytes=0\nredirect_stderr=true\n\n[program:neko]\ncommand=/usr/bin/neko serve --server.static \"/var/www\"\nstopsignal=INT\nstopwaitsecs=3\nautorestart=true\npriority=800\nstdout_logfile=/dev/fd/1\nstdout_logfile_maxbytes=0\nredirect_stderr=true\n\n[unix_http_server]\nfile=/tmp/supervisor.sock\nchmod=0700\n\n[supervisorctl]\nserverurl=unix:///tmp/supervisor.sock\n\n[rpcinterface:supervisor]\nsupervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface\n",
+          "overwrite": true
+        },
+        {
+          "path": "home/.mozilla/firefox/profiles.ini",
+          "template": "[General]\nStartWithLastProfile=1\n\n[Profile0]\nName=default\nIsRelative=1\nPath=profile.default\nDefault=1\n"
+        },
+        {
+          "path": "home/.mozilla/firefox/profile.default/.anyserve",
+          "template": "Firefox's profile folder, kept by Anyserve.\n"
+        }
+      ],
+      "run": null,
+      "stop": {},
+      "console": {},
+      "backup": {
+        "paths": [
+          "home"
+        ],
+        "stop_first": true
+      },
+      "stack": {
+        "services": [
+          {
+            "name": "neko",
+            "image": "ghcr.io/m1k1o/neko/firefox:3.2.0@sha256:415730ef9e3c35d850fdbbb95aa150cb9eda0b9c260c61d1974fb3af39cb71c3",
+            "env": {
+              "HOME": "/home/neko",
+              "NEKO_DESKTOP_SCREEN": "{{.Settings.screen}}",
+              "NEKO_MEMBER_MULTIUSER_ADMIN_PASSWORD": "{{.Settings.admin_password}}",
+              "NEKO_MEMBER_MULTIUSER_USER_PASSWORD": "{{.Settings.user_password}}",
+              "NEKO_MEMBER_PROVIDER": "multiuser",
+              "NEKO_WEBRTC_NAT1TO1": "{{.Settings.public_address}}",
+              "NEKO_WEBRTC_TCPMUX": "{{.Ports.webrtc}}",
+              "NEKO_WEBRTC_UDPMUX": "{{.Ports.webrtc}}",
+              "XDG_RUNTIME_DIR": "/home/neko"
+            },
+            "volumes": [
+              {
+                "path": "supervisord.conf",
+                "target": "/etc/neko/supervisord.conf",
+                "read_only": true
+              },
+              {
+                "path": "home",
+                "target": "/home/neko"
+              }
+            ],
+            "ports": [
+              {
+                "port": "http",
+                "target": 8080
+              },
+              {
+                "port": "webrtc",
+                "same_port": true
+              }
+            ],
+            "health": {
+              "command": [
+                "curl",
+                "-fsS",
+                "-o",
+                "/dev/null",
+                "http://127.0.0.1:8080/health"
+              ]
+            },
+            "shm_mb": 2048
+          }
+        ]
+      },
+      "linuxgsm": {
+        "status": "missing",
+        "notes": "Not a game server, so it doesn't belong in LinuxGSM."
+      },
+      "notes": [
+        "Viewers open the http port in their browser, so add `--expose http` for your network, or give it a domain behind your HTTPS proxy. The webrtc port (UDP and TCP) must be reachable by viewers too; open it in your firewall.",
+        "Viewers log in with any display name and the viewer password; admins with the admin password. See them with `anyserve config \u003cname\u003e --show-secrets`.",
+        "It looks up this machine's public IP for viewers to connect to. For viewers on your LAN only, set public_address to this machine's LAN IP."
       ]
     },
     {
