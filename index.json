@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "main",
-  "generated": "2026-11-26T07:44:05Z",
+  "generated": "2026-11-26T23:39:06Z",
   "services": [
     {
       "schema": 1,
@@ -365,7 +365,7 @@
       "name": "Audiobookshelf",
       "description": "An audiobook and podcast server with progress sync, web player and mobile apps.",
       "homepage": "https://www.audiobookshelf.org",
-      "version": "2.38.0-1",
+      "version": "2.38.0-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -445,8 +445,7 @@
       },
       "notes": [
         "Create the root account on your first visit, then add a library pointing at /audiobooks (and /podcasts).",
-        "Backups cover the database, covers and progress, not your audiobook files.",
-        "Phones need `--expose http` on your LAN, or an HTTPS proxy."
+        "Backups cover the database, covers and progress, not your audiobook files."
       ]
     },
     {
@@ -1216,7 +1215,7 @@
       "name": "Forgejo",
       "description": "A community-run Git forge (a Gitea fork) with pull requests, issues, packages and Actions.",
       "homepage": "https://forgejo.org",
-      "version": "17.0.2-1",
+      "version": "17.0.2-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -1224,13 +1223,21 @@
           "key": "domain",
           "prompt": "Host name people will use (e.g. git.example.com)",
           "type": "string",
-          "default": "localhost"
+          "default": "localhost",
+          "address": {
+            "port": "http",
+            "form": "host"
+          }
         },
         {
           "key": "root_url",
           "prompt": "Full web address (e.g. https://git.example.com/)",
           "type": "string",
-          "default": "http://localhost:3003/"
+          "default": "http://localhost:3003/",
+          "address": {
+            "port": "http",
+            "path": "/"
+          }
         },
         {
           "key": "disable_registration",
@@ -1330,8 +1337,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "The first account you register becomes the admin. Set disable_registration afterwards if it's just for you.",
-        "To reach it from other computers, add `--expose http` (and `--expose ssh` for Git over SSH), or put an HTTPS proxy in front of it."
+        "The first account you register becomes the admin. Set disable_registration afterwards if it's just for you."
       ]
     },
     {
@@ -1531,7 +1537,7 @@
       "name": "Gitea",
       "description": "A lightweight self-hosted Git service with pull requests, issues, packages and CI (Actions).",
       "homepage": "https://about.gitea.com",
-      "version": "28.4.0-1",
+      "version": "28.4.0-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -1539,13 +1545,21 @@
           "key": "domain",
           "prompt": "Host name people will use (e.g. git.example.com)",
           "type": "string",
-          "default": "localhost"
+          "default": "localhost",
+          "address": {
+            "port": "http",
+            "form": "host"
+          }
         },
         {
           "key": "root_url",
           "prompt": "Full web address (e.g. https://git.example.com/)",
           "type": "string",
-          "default": "http://localhost:3000/"
+          "default": "http://localhost:3000/",
+          "address": {
+            "port": "http",
+            "path": "/"
+          }
         },
         {
           "key": "disable_registration",
@@ -1650,8 +1664,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "The first account you register becomes the admin. Set disable_registration afterwards if it's just for you.",
-        "To reach it from other computers, add `--expose http` (and `--expose ssh` for Git over SSH), or put an HTTPS proxy in front of it."
+        "The first account you register becomes the admin. Set disable_registration afterwards if it's just for you."
       ]
     },
     {
@@ -1660,7 +1673,7 @@
       "name": "Gotify",
       "description": "A self-hosted server for sending and receiving push messages, with a web UI and Android app.",
       "homepage": "https://gotify.net",
-      "version": "3.1.1-1",
+      "version": "3.1.1-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -1726,8 +1739,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "The admin password only applies on the first start. Change it later in the web UI.",
-        "Phones need to reach the server, so add `--expose http` for your LAN or put an HTTPS proxy in front of it."
+        "The admin password only applies on the first start. Change it later in the web UI."
       ]
     },
     {
@@ -1736,7 +1748,7 @@
       "name": "Grafana",
       "description": "Dashboards and alerts for metrics and logs from Prometheus, InfluxDB, Loki, databases and more.",
       "homepage": "https://grafana.com/oss/grafana/",
-      "version": "13.3.1-1",
+      "version": "13.3.1-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -1757,7 +1769,10 @@
           "key": "root_url",
           "prompt": "Address people will use (e.g. https://grafana.example.com)",
           "type": "string",
-          "default": "http://localhost:3002"
+          "default": "http://localhost:3002",
+          "address": {
+            "port": "http"
+          }
         }
       ],
       "ports": [
@@ -1820,7 +1835,7 @@
       "name": "Harmony",
       "description": "A federated chat and social app (Discord-style servers and channels, on the fediverse), with its Supabase backend, as a stack of containers.",
       "homepage": "https://github.com/y4my4my4m/harmony",
-      "version": "1.9.7-1",
+      "version": "1.9.7-2",
       "kind": "stack",
       "install": {
         "archive": {
@@ -1884,14 +1899,20 @@
           "prompt": "Address people will use for Harmony (e.g. https://chat.example.com)",
           "description": "Federation uses this name; don't change it after people have joined.",
           "type": "string",
-          "default": "http://localhost:8090"
+          "default": "http://localhost:8090",
+          "address": {
+            "port": "http"
+          }
         },
         {
           "key": "api_url",
           "prompt": "Address of its API, on its own name (e.g. https://db.chat.example.com)",
           "description": "Sign-in, data, uploads and live updates go here. Point it at the api port.",
           "type": "string",
-          "default": "http://localhost:8091"
+          "default": "http://localhost:8091",
+          "address": {
+            "port": "api"
+          }
         },
         {
           "key": "instance_name",
@@ -2600,7 +2621,7 @@
       },
       "notes": [
         "Needs Docker with the Compose plugin, about 3 GB of images and 2 GB of memory.",
-        "Two addresses: the app (port http) and its API (port api). Behind an HTTPS proxy, point https://chat.example.com at http and https://db.chat.example.com at api, then set url and api_url to those. Both listen on 127.0.0.1 only; --expose http --expose api opens them to your network.",
+        "Two addresses: the app (port http) and its API (port api). Behind an HTTPS proxy, point https://chat.example.com at http and https://db.chat.example.com at api, then set url and api_url to those. Without a domain, both are opened to the network and url and api_url are filled in with this machine's address.",
         "The admin account is created on every start if it's missing; `anyserve config \u003cname\u003e --show-secrets` shows its password. Changing admin_password later doesn't change an existing account's password.",
         "Never change jwt_seed or postgres_password after the first start.",
         "Without a mail server, new addresses count as confirmed and invitations are links you share yourself. Voice (LiveKit), bots, push notifications and the Discord bridge aren't set up.",
@@ -2613,7 +2634,7 @@
       "name": "Immich",
       "description": "A self-hosted photo and video library with phone backup, face recognition and smart search.",
       "homepage": "https://immich.app",
-      "version": "3.4.2-1",
+      "version": "3.4.2-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -2763,7 +2784,6 @@
       "notes": [
         "Create the admin account on your first visit.",
         "Anyserve backups cover the database only, because photo libraries are often huge. Back up the library folder inside the instance with your usual tools as well.",
-        "Phones need `--expose http` on your LAN, or an HTTPS proxy for use away from home.",
         "Machine learning (faces, smart search) downloads its models on first use and needs a few GB of memory."
       ]
     },
@@ -2773,7 +2793,7 @@
       "name": "Jellyfin",
       "description": "A free media server for your films, TV, music and photos, with apps for TVs, phones and browsers.",
       "homepage": "https://jellyfin.org",
-      "version": "12.4-1",
+      "version": "12.4-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -2851,7 +2871,7 @@
       "notes": [
         "Run the setup wizard on your first visit and add libraries from folders under /media.",
         "Hardware transcoding (GPU) isn't set up, because it needs device access that Anyserve stacks don't allow. Software transcoding works.",
-        "TVs and phones need `--expose http` on your LAN. Automatic discovery on the LAN isn't available; enter the address by hand.",
+        "Automatic discovery on the LAN isn't available; enter the address on TVs and phones by hand.",
         "Backups cover settings, users and watch history, not your media or the cache."
       ]
     },
@@ -3030,7 +3050,7 @@
       "name": "Lemmy",
       "description": "A federated link aggregator and forum (like Reddit, on the fediverse), as a stack of containers.",
       "homepage": "https://join-lemmy.org",
-      "version": "0.19.21-4",
+      "version": "0.19.21-5",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -3039,7 +3059,12 @@
           "prompt": "Domain name people will use (e.g. lemmy.example.com)",
           "description": "Federation uses this name, and it can't be changed after the first start.",
           "type": "string",
-          "default": "localhost"
+          "default": "localhost",
+          "address": {
+            "port": "http",
+            "form": "host",
+            "once": true
+          }
         },
         {
           "key": "https",
@@ -3236,7 +3261,7 @@
       },
       "notes": [
         "Needs Docker with the Compose plugin.",
-        "The site listens on 127.0.0.1 only. Put an HTTPS reverse proxy (Caddy, nginx, a tunnel) in front of it for your domain, or open it to your network with `--expose http`.",
+        "Federation needs a real domain behind HTTPS: install with `--domain` (Anyserve's HTTPS proxy), or set hostname and https for a proxy of your own.",
         "The admin account is created on the first start. `anyserve config \u003cname\u003e --show-secrets` shows its generated password."
       ]
     },
@@ -3246,7 +3271,7 @@
       "name": "Mealie",
       "description": "A recipe manager and meal planner that imports recipes from any website by URL.",
       "homepage": "https://mealie.io",
-      "version": "3.31.0-1",
+      "version": "3.31.0-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -3254,7 +3279,10 @@
           "key": "base_url",
           "prompt": "Address people will use (e.g. https://recipes.example.com)",
           "type": "string",
-          "default": "http://localhost:9925"
+          "default": "http://localhost:9925",
+          "address": {
+            "port": "http"
+          }
         },
         {
           "key": "allow_signup",
@@ -3318,8 +3346,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "Log in with changeme@example.com and password MyPassword, then change both straight away.",
-        "To reach it from other computers on your network, add `--expose http`."
+        "Log in with changeme@example.com and password MyPassword, then change both straight away."
       ]
     },
     {
@@ -3328,7 +3355,7 @@
       "name": "Memos",
       "description": "A lightweight, self-hosted note-taking app for quick thoughts, in a timeline you can search and share.",
       "homepage": "https://usememos.com",
-      "version": "26.11.1-1",
+      "version": "26.11.1-2",
       "kind": "stack",
       "install": {},
       "ports": [
@@ -3379,8 +3406,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "The first account you create becomes the admin.",
-        "To reach it from other computers on your network, add `--expose http`."
+        "The first account you create becomes the admin."
       ]
     },
     {
@@ -4270,7 +4296,7 @@
       "name": "Miniflux",
       "description": "A minimalist, fast feed reader for RSS, Atom and JSON Feed, with a clean web UI and API.",
       "homepage": "https://miniflux.app",
-      "version": "2.3.5-1",
+      "version": "2.3.5-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -4278,7 +4304,10 @@
           "key": "base_url",
           "prompt": "Address people will use (e.g. https://rss.example.com)",
           "type": "string",
-          "default": "http://localhost:8085"
+          "default": "http://localhost:8085",
+          "address": {
+            "port": "http"
+          }
         },
         {
           "key": "admin_user",
@@ -4385,10 +4414,7 @@
       "linuxgsm": {
         "status": "missing",
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
-      },
-      "notes": [
-        "To reach it from other computers on your network, add `--expose http`."
-      ]
+      }
     },
     {
       "schema": 1,
@@ -4488,7 +4514,7 @@
       "name": "n8n",
       "description": "A workflow automation tool. Connect apps and APIs with a visual editor, like a self-hosted Zapier.",
       "homepage": "https://n8n.io",
-      "version": "2.48.7-1",
+      "version": "2.48.7-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -4497,7 +4523,11 @@
           "prompt": "Address people and webhooks will use (e.g. https://n8n.example.com/)",
           "description": "Webhook URLs shown in the editor start with this.",
           "type": "string",
-          "default": "http://localhost:5678/"
+          "default": "http://localhost:5678/",
+          "address": {
+            "port": "http",
+            "path": "/"
+          }
         },
         {
           "key": "encryption_key",
@@ -4578,7 +4608,7 @@
       "name": "Navidrome",
       "description": "A music server and streamer for your own collection, compatible with Subsonic apps.",
       "homepage": "https://www.navidrome.org",
-      "version": "0.64.2-1",
+      "version": "0.64.2-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -4667,8 +4697,7 @@
       },
       "notes": [
         "The first account you create becomes the admin.",
-        "Backups cover Navidrome's database (playlists, ratings, play counts), not your music folder.",
-        "Phones and other computers need `--expose http` on your LAN, or an HTTPS proxy."
+        "Backups cover Navidrome's database (playlists, ratings, play counts), not your music folder."
       ]
     },
     {
@@ -4820,7 +4849,7 @@
       "name": "n.eko",
       "description": "A shared Firefox in a container that friends use together from their own browsers, over WebRTC. Watch parties, browsing together, or a throwaway browser.",
       "homepage": "https://neko.m1k1o.net",
-      "version": "3.2.0-1",
+      "version": "3.2.0-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -4964,7 +4993,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "Viewers open the http port in their browser, so add `--expose http` for your network, or give it a domain behind your HTTPS proxy. The webrtc port (UDP and TCP) must be reachable by viewers too; open it in your firewall.",
+        "Viewers open the http port in their browser. The webrtc port (UDP and TCP) must be reachable by viewers too; open it in your firewall.",
         "Viewers log in with any display name and the viewer password; admins with the admin password. See them with `anyserve config \u003cname\u003e --show-secrets`.",
         "It looks up this machine's public IP for viewers to connect to. For viewers on your LAN only, set public_address to this machine's LAN IP."
       ]
@@ -5140,16 +5169,19 @@
       "name": "ntfy",
       "description": "A simple push notification server. Send alerts to your phone or desktop with a plain HTTP request.",
       "homepage": "https://ntfy.sh",
-      "version": "2.38.1-1",
+      "version": "2.38.1-2",
       "kind": "stack",
       "install": {},
       "settings": [
         {
           "key": "base_url",
           "prompt": "Address people and apps will use (e.g. https://ntfy.example.com)",
-          "description": "Used for attachment links and the web app. Leave the default for testing on this machine.",
+          "description": "Used for attachment links and the web app. Filled in from this machine's address unless you give one.",
           "type": "string",
-          "default": "http://localhost:2586"
+          "default": "http://localhost:2586",
+          "address": {
+            "port": "http"
+          }
         },
         {
           "key": "default_access",
@@ -5254,8 +5286,7 @@
       },
       "notes": [
         "Send a test message: curl -d 'Hello' http://localhost:2586/test, then subscribe to the topic test in the app.",
-        "Add users from the console: anyserve console \u003cname\u003e, then ntfy user add --role=admin yourname.",
-        "Phones need to reach the server, so add `--expose http` for your LAN or put an HTTPS proxy in front of it."
+        "Add users from the console: anyserve console \u003cname\u003e, then ntfy user add --role=admin yourname."
       ]
     },
     {
@@ -5427,7 +5458,7 @@
       "name": "Paperless-ngx",
       "description": "A document manager that scans, OCRs and indexes your paper documents so you can search them.",
       "homepage": "https://docs.paperless-ngx.com",
-      "version": "3.5.1-1",
+      "version": "3.5.1-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -5435,7 +5466,10 @@
           "key": "url",
           "prompt": "Address people will use (e.g. https://paperless.example.com)",
           "type": "string",
-          "default": "http://localhost:8000"
+          "default": "http://localhost:8000",
+          "address": {
+            "port": "http"
+          }
         },
         {
           "key": "admin_user",
@@ -5610,7 +5644,7 @@
       },
       "notes": [
         "The first start takes a few minutes while Paperless sets up its database.",
-        "Paperless only answers on the address in url (by default http://localhost:8000). If you use `--expose http` for your LAN, set url to the address you'll browse to, such as http://192.168.1.10:8000.",
+        "Paperless only answers on the address in url, which is filled in from this machine's address (or the domain). If people browse to it by another name, set url to that.",
         "Backups cover the database and your stored documents (media). Use Paperless's own exporter for a portable copy."
       ]
     },
@@ -6609,7 +6643,7 @@
       "name": "Syncthing",
       "description": "Continuous peer-to-peer file sync between your computers and phones, with no cloud in between.",
       "homepage": "https://syncthing.net",
-      "version": "2.1.7-1",
+      "version": "2.1.7-2",
       "kind": "stack",
       "install": {},
       "settings": [
@@ -6619,6 +6653,20 @@
           "description": "Shared read-write at /sync. Add folders under /sync in the web UI.",
           "type": "folder",
           "default": "~/Sync"
+        },
+        {
+          "key": "gui_user",
+          "prompt": "Web UI user name",
+          "type": "string",
+          "default": "admin"
+        },
+        {
+          "key": "gui_password",
+          "prompt": "Web UI password (leave empty to generate one)",
+          "description": "Set on every start, so the web UI is never open without one.",
+          "type": "string",
+          "secret": true,
+          "generate": true
         }
       ],
       "ports": [
@@ -6626,7 +6674,7 @@
           "name": "gui",
           "port": 8384,
           "protocol": "tcp",
-          "description": "The web UI. Set a GUI password before exposing it.",
+          "description": "The web UI, behind the gui_user and gui_password login.",
           "public": false
         },
         {
@@ -6651,7 +6699,14 @@
           {
             "name": "syncthing",
             "image": "syncthing/syncthing:2.1.7@sha256:2b71da7c0d0a91a6ae5285ad079226fecc0a365d08b27720e1f7037b018f7546",
+            "entrypoint": [
+              "/bin/sh",
+              "-c",
+              "printf %s \"$$GUI_PASSWORD\" | /bin/syncthing generate --gui-user \"$$GUI_USER\" --gui-password - \u003e/dev/null \u0026\u0026 exec /bin/syncthing"
+            ],
             "env": {
+              "GUI_PASSWORD": "{{.Settings.gui_password}}",
+              "GUI_USER": "{{.Settings.gui_user}}",
               "STGUIADDRESS": "0.0.0.0:8384"
             },
             "volumes": [
@@ -6682,7 +6737,7 @@
         "notes": "Not a game server, so it doesn't belong in LinuxGSM."
       },
       "notes": [
-        "Open the web UI and set a GUI user and password first (Actions, Settings, GUI).",
+        "The web UI asks for gui_user and gui_password; `anyserve config \u003cname\u003e --show-secrets` shows the generated password. A password changed in the web UI is put back on the next start, so change it with `anyserve config \u003cname\u003e --set gui_password=...`.",
         "Share folders under /sync, which is the folder you chose on this machine.",
         "Devices find each other through Syncthing's global discovery and relays. Local discovery on the LAN isn't available inside a container, so add devices by ID.",
         "Backups cover Syncthing's keys and settings, not the synced files."
@@ -7166,7 +7221,7 @@
       "name": "Uptime Kuma",
       "description": "A self-hosted monitoring tool that checks websites and services and alerts you when they go down.",
       "homepage": "https://uptime.kuma.pet",
-      "version": "2.5.12-1",
+      "version": "2.5.12-2",
       "kind": "stack",
       "install": {},
       "ports": [
@@ -7216,7 +7271,6 @@
       },
       "notes": [
         "Open the dashboard and create the admin account on first visit. Pick SQLite when asked for a database.",
-        "To reach it from other computers on your network, add `--expose http`.",
         "Monitors run from inside the container, so to check a service on this machine use its LAN address rather than localhost."
       ]
     },
@@ -7420,16 +7474,19 @@
       "name": "Vaultwarden",
       "description": "A lightweight server for the Bitwarden password manager apps and browser extensions.",
       "homepage": "https://github.com/dani-garcia/vaultwarden",
-      "version": "1.37.5-1",
+      "version": "1.37.5-2",
       "kind": "stack",
       "install": {},
       "settings": [
         {
           "key": "domain",
           "prompt": "Full address people will use, with https:// (e.g. https://vault.example.com)",
-          "description": "Bitwarden apps and web vault links use this. Leave the default only for testing on this machine.",
+          "description": "Bitwarden apps and web vault links use this. Filled in from this machine's address unless you give one.",
           "type": "string",
-          "default": "http://localhost:8222"
+          "default": "http://localhost:8222",
+          "address": {
+            "port": "http"
+          }
         },
         {
           "key": "signups_allowed",
@@ -7506,8 +7563,7 @@
       },
       "notes": [
         "Bitwarden apps and browsers only unlock vaults over HTTPS (or on http://localhost). Put an HTTPS reverse proxy such as Caddy in front of it, and set domain to that address.",
-        "The admin page is at /admin. See the token with `anyserve config \u003cname\u003e --show-secrets`.",
-        "To reach it from other computers on your network, add `--expose http` (at install, or later with `anyserve config`)."
+        "The admin page is at /admin. See the token with `anyserve config \u003cname\u003e --show-secrets`."
       ]
     },
     {
